@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/pbi/:path*",
+      "destination": "https://powerbi-mcp-api-834462355073.us-central1.run.app/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
