@@ -41,69 +41,108 @@
       
       @media print {
         @page { 
-          size: A4 landscape; 
-          margin: 0; 
+          size: A4 portrait; 
+          margin: 15mm; 
         }
         
-        .no-print, .no-print-section, header, footer, button, nav, [role="button"], textarea, .admin-btn { 
-          display: none !important; 
-        }
-        
-        body, html { 
+        /* Reset de Cores para Impressão Profissional */
+        body, html, #root, main { 
           background-color: white !important; 
-          color: black !important; 
+          color: #111 !important; 
           margin: 0 !important; 
           padding: 0 !important;
-          width: 297mm !important; /* A4 Landscape width */
+          width: 100% !important;
           height: auto !important;
           -webkit-print-color-adjust: exact !important; 
           print-color-adjust: exact !important; 
         }
 
-        #root {
-          width: 1200px !important;
-          margin: 0 auto !important;
-          padding: 40px !important;
-          transform: scale(0.9);
-          transform-origin: top left;
+        /* Esconder UI Irrelevante */
+        .no-print, .no-print-section, header, footer, button, nav, [role="button"], 
+        textarea, .admin-btn, .modal-blur, .fixed, .sticky { 
+          display: none !important; 
         }
 
-        main {
-          padding: 0 !important;
-          margin: 0 !important;
+        /* Layout de Relatório Excecutivo */
+        #root {
           width: 100% !important;
           max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
           display: block !important;
         }
 
-        .container {
+        main {
+          width: 100% !important;
+          max-width: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          gap: 40px !important;
+          display: block !important;
+        }
+
+        /* Container de 1200px local vira 100% no papel */
+        .container, .max-w-\[1200px\] {
           max-width: none !important;
           width: 100% !important;
           padding: 0 !important;
+          margin: 0 !important;
         }
 
-        .card, section, .metric-card {
+        /* Garantir que seções não quebrem no meio */
+        .card, section, .metric-card, .campaign-table, .creative-item, table, tr {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-bottom: 30px !important;
-          box-shadow: none !important;
+          margin-bottom: 40px !important;
+          position: relative !important;
+          display: block !important;
           border: 1px solid #eee !important;
-          background-color: white !important;
+          border-radius: 12px !important;
+          box-shadow: none !important;
+          background: white !important;
+          overflow: visible !important;
         }
 
-        /* Forçar grid para não quebrar */
-        .grid {
-          display: grid !important;
-        }
-
-        h2, h3, h4 {
+        /* Títulos sempre juntos do conteúdo seguinte */
+        h1, h2, h3, h4, h5 {
           break-after: avoid !important;
           page-break-after: avoid !important;
+          color: #000 !important;
+          margin-top: 20px !important;
         }
 
+        /* Forçar Grids e Flex para ocupar largura total */
+        .grid, .flex {
+          display: block !important; /* Colunar no PDF para evitar apertar demais */
+          width: 100% !important;
+        }
+
+        .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+          grid-template-columns: 1fr !important;
+        }
+
+        /* Exceção para mini-cartões (MetricCards) que podem ficar lado a lado */
+        .metric-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 15px !important;
+        }
+
+        /* Ajuste de Gráficos Recharts */
         .recharts-responsive-container {
           width: 100% !important;
-          height: 300px !important;
+          height: 350px !important;
+          break-inside: avoid !important;
+        }
+
+        /* Forçar texto visível */
+        .text-gray-400, .text-gray-500, .dark\:text-white\/40 {
+          color: #666 !important;
+        }
+        
+        .dark {
+          background-color: white !important;
+          color: black !important;
         }
       }
 

@@ -250,7 +250,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
           return (
             <div 
               key={idx} 
-              className={`group bg-white dark:bg-wigoo-gray rounded-[3rem] border border-gray-100 dark:border-white/5 overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl flex flex-col ${isExpanded ? 'ring-2 ring-wigoo-primary' : ''} ${isPending ? 'opacity-40 grayscale-[0.5] blur-[2px]' : ''}`}
+              className={`creative-item bg-white dark:bg-wigoo-gray rounded-[3rem] border border-gray-100 dark:border-white/5 overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl flex flex-col ${isExpanded ? 'ring-2 ring-wigoo-primary' : ''} ${isPending ? 'opacity-40 grayscale-[0.5] blur-[2px]' : ''}`}
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 dark:bg-wigoo-dark">
                 <CreativeImage url={creative.url} name={creative.name} />

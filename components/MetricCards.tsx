@@ -40,13 +40,13 @@ const MetricCards: React.FC<{ data: DashboardData }> = ({ data }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 print:grid-cols-3 gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 print:grid-cols-2 gap-4 w-full metric-grid">
       {metrics.map((m, idx) => {
         const valText = m.isCurrency ? formatCurrency(m.metric.current) : (m.isRaw ? m.metric.current.toFixed(2) : formatNumber(m.metric.current));
         const fontSize = getDynamicFontSize(valText, 'text-xl');
         
         return (
-          <div key={idx} className="bg-white dark:bg-wigoo-gray border border-gray-200 dark:border-wigoo-gray-light rounded-2xl p-5 shadow-sm dark:shadow-lg card flex flex-col justify-between group hover:border-wigoo-primary/30 transition-all theme-transition">
+          <div key={idx} className="bg-white dark:bg-wigoo-gray border border-gray-200 dark:border-wigoo-gray-light rounded-2xl p-5 shadow-sm dark:shadow-lg card metric-card flex flex-col justify-between group hover:border-wigoo-primary/30 transition-all theme-transition">
             <div className="flex justify-between items-start mb-2">
               <span className="text-[10px] font-black text-gray-400 dark:text-wigoo-light/40 uppercase tracking-widest leading-tight">{m.label}</span>
               <div className={`w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center ${m.color}`}>

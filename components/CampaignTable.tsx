@@ -40,7 +40,7 @@ const CampaignTable: React.FC<{ campaigns: Campaign[] }> = ({ campaigns }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-wigoo-gray border border-gray-200 dark:border-wigoo-gray-light/30 rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl card flex flex-col w-full max-w-[1200px] mx-auto theme-transition print:border print:shadow-none">
+    <div className="bg-white dark:bg-wigoo-gray border border-gray-200 dark:border-wigoo-gray-light/30 rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl card campaign-table flex flex-col w-full max-w-[1200px] mx-auto theme-transition print:border print:shadow-none">
       <div className="p-8 border-b border-gray-100 dark:border-wigoo-gray-light/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50/50 dark:bg-wigoo-dark/20 theme-transition no-print-section">
         <div>
           <h3 className="text-xl font-black flex items-center gap-4 text-gray-900 dark:text-white">
