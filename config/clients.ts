@@ -2,6 +2,7 @@
 export interface ClientConfig {
   id: string;
   name: string;
+  slug: string;
   datasetId: string;
   measuresTable: string;
   performanceDax: string;
@@ -12,6 +13,7 @@ export const CLIENTS: ClientConfig[] = [
   {
     id: 'cea',
     name: 'C&A',
+    slug: 'cea',
     datasetId: '4269623c-ac5a-480f-82a9-c887fbbd781d',
     measuresTable: '_Medidas',
     performanceDax: `
@@ -208,6 +210,7 @@ RETURN _FinalString`
   {
     id: 'serasa_pme',
     name: 'Serasa PME',
+    slug: 'serasa',
     datasetId: '', // Dataset ID provisionally empty
     measuresTable: '_Medidas',
     performanceDax: `

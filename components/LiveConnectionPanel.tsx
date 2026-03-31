@@ -10,10 +10,11 @@ interface Props {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   viewMode: 'performance' | 'creative';
+  lockedClient?: ClientConfig;
 }
 
-const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLoading, viewMode }) => {
-  const [selectedClientId, setSelectedClientId] = useState(CLIENTS[0].id);
+const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLoading, viewMode, lockedClient }) => {
+  const [selectedClientId, setSelectedClientId] = useState(lockedClient?.id || CLIENTS[0].id);
   const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -63,15 +64,22 @@ const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLo
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-gray-400 dark:text-wigoo-light/40 uppercase tracking-widest ml-1">Cliente</label>
-              <select 
-                value={selectedClientId}
-                onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-wigoo-dark border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white outline-none focus:border-wigoo-primary/50 transition-all appearance-none cursor-pointer"
-              >
-                {CLIENTS.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              {lockedClient ? (
+                <div className="w-full bg-gray-100/50 dark:bg-wigoo-dark/50 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3 text-sm font-black text-wigoo-primary transition-all">
+                  <i className="fa-solid fa-lock mr-2 text-[10px] opacity-50"></i>
+                  {lockedClient.name}
+                </div>
+              ) : (
+                <select 
+                  value={selectedClientId}
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-wigoo-dark border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white outline-none focus:border-wigoo-primary/50 transition-all appearance-none cursor-pointer"
+                >
+                  {CLIENTS.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="space-y-1.5">

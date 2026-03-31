@@ -13,9 +13,17 @@ import BackendComparison from './components/BackendComparison';
 import Footer from './components/Footer';
 import AdminModal from './components/AdminModal';
 import LiveConnectionPanel from './components/LiveConnectionPanel';
+import LandingPage from './components/LandingPage';
+import { CLIENTS } from './config/clients';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<'performance' | 'creative'>('performance');
+  
+  // Roteamento Simples por Pathname
+  const path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase(); // Limpa barras
+  const lockedClient = CLIENTS.find(c => c.slug.toLowerCase() === path);
+  const isLanding = path === '' || (!lockedClient && path !== 'admin'); 
+  
   const [rawInput, setRawInput] = useState('');
   const [userQuery, setUserQuery] = useState('');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -85,12 +93,17 @@ const App: React.FC = () => {
     window.scrollTo({ top: 600, behavior: 'smooth' });
   };
 
+  if (isLanding) {
+    return <LandingPage />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-wigoo-dark theme-transition selection:bg-wigoo-primary selection:text-white">
       <Header 
         onOpenAdmin={() => setIsAdminOpen(true)} 
         theme={theme} 
         toggleTheme={toggleTheme} 
+        clientName={lockedClient?.name}
       />
         
         <main className="flex-grow container mx-auto px-4 py-12 space-y-12 flex flex-col items-center">
@@ -134,6 +147,7 @@ const App: React.FC = () => {
                 isLoading={isSyncing}
                 setIsLoading={setIsSyncing}
                 viewMode={viewMode}
+                lockedClient={lockedClient}
               />
             ) : (
               <InputSection 

@@ -5,9 +5,10 @@ interface HeaderProps {
   onOpenAdmin: () => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
+  clientName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenAdmin, theme, toggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenAdmin, theme, toggleTheme, clientName }) => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -30,7 +31,14 @@ const Header: React.FC<HeaderProps> = ({ onOpenAdmin, theme, toggleTheme }) => {
         <div className="h-8 w-px bg-gray-200 dark:bg-wigoo-gray-light/30 hidden sm:block"></div>
         <div className="hidden sm:flex flex-col">
           <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Executive Dashboard</h1>
-          <p className="text-[10px] text-wigoo-primary dark:text-wigoo-accent font-bold uppercase tracking-widest mt-1">Inteligência de Performance</p>
+          <p className="text-[10px] text-wigoo-primary dark:text-wigoo-accent font-bold uppercase tracking-widest mt-1">
+            {clientName ? (
+              <span className="flex items-center gap-1.5">
+                <i className="fa-solid fa-circle text-[6px] text-emerald-500 animate-pulse" />
+                {clientName}
+              </span>
+            ) : 'Inteligência de Performance'}
+          </p>
         </div>
       </div>
 
