@@ -5,6 +5,7 @@ import { DashboardData, Creative } from "../types";
 // ============================================================================
 const OPENAI_KEY = "";
 const GOOGLE_KEY_BACKUP = ""; 
+const GROQ_KEY = "";
 
 // ============================================================================
 // PROMPTS (MANTIDOS 100% IGUAIS)
@@ -258,7 +259,71 @@ async function callGemini(modelName: string, prompt: string, images: { data: str
   }
 }
 
+// 3. Motor Groq LLaMA (Fast Fallback)
+async function callGroq(modelName: string, prompt: string, images: { data: string, mimeType: string }[] = [], systemInstruction?: string): Promise<InsightResponse | null> {
+  const apiKey = import.meta.env?.VITE_GROQ_API_KEY || GROQ_KEY;
+
+  if (!apiKey) {
+    console.warn("Wigoo AI - Groq API Key não configurada.");
+    return null;
+  }
+
+  try {
+    const messages = [
+      { role: "system", content: systemInstruction || "Você é o motor Wigoo AI Hub." },
+      { 
+        role: "user", 
+        content: images.length > 0 
+          ? [
+              { type: "text", text: prompt },
+              ...images.map(img => ({
+                type: "image_url",
+                image_url: { url: `data:${img.mimeType};base64,${img.data}` }
+              }))
+            ]
+          : prompt
+      }
+    ];
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: messages,
+        temperature: 0.1,
+        max_tokens: 1500
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+       console.error("Groq Error:", await response.text());
+       return null;
+    }
+
+    const json = await response.json();
+    return { 
+        text: json.choices?.[0]?.message?.content || "", 
+        model: `Groq ${modelName}`
+    };
+
+  } catch (err: any) {
+    console.error("Falha no modelo Groq:", err);
+    return null;
+  }
+}
+
 // ============================================================================
+
 // FUNÇÕES EXPORTADAS (Lógica Principal)
 // ============================================================================
 
@@ -304,7 +369,12 @@ export const analyzeSingleCreative = async (creative: Creative, id: number): Pro
   // 1. Tenta OpenAI Primeiro
   let result = await callOpenAI(prompt, images, systemInstruction);
   
-  // 2. Fallback para Google Gemini
+  // 2. Fallback para Groq (Llama Vision)
+  if (!result) {
+      result = await callGroq('llama-3.2-90b-vision-preview', prompt, images, systemInstruction);
+  }
+
+  // 3. Fallback para Google Gemini
   if (!result) {
       result = await callGemini('gemini-1.5-flash', prompt, images, systemInstruction);
   }
@@ -329,7 +399,12 @@ export const generateInsights = async (data: DashboardData, customPrompt?: strin
   // 1. Tenta OpenAI Primeiro
   let result = await callOpenAI(finalPrompt, [], systemInstruction);
 
-  // 2. Fallback para Google Gemini
+  // 2. Fallback para Groq (Llama Versatile)
+  if (!result) {
+      result = await callGroq('llama-3.3-70b-versatile', finalPrompt, [], systemInstruction);
+  }
+
+  // 3. Fallback para Google Gemini
   if (!result) {
       result = await callGemini('gemini-2.0-flash-exp', finalPrompt, [], systemInstruction);
   }
