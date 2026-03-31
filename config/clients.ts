@@ -204,5 +204,74 @@ VAR _FinalString =
     ) &
     ";;END_EXPORT"
 RETURN _FinalString`
+  },
+  {
+    id: 'serasa_pme',
+    name: 'Serasa PME',
+    datasetId: '', // Dataset ID provisionally empty
+    measuresTable: '_Medidas',
+    performanceDax: `
+// Performance DAX for Serasa PME (Placeholder)
+// Same logic as C&A can be adapted here when metrics are ready
+`,
+    creativeDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- M-1 (período anterior injetado pelo frontend) ---
+VAR _PrevStart = {{PREV_START_DATE}}
+VAR _PrevEnd = {{PREV_END_DATE}}
+
+VAR _CreativeTable = 
+    FILTER(
+        ADDCOLUMNS(
+            SUMMARIZE(
+                'meta_ads_serasa_pme', 
+                'meta_ads_serasa_pme'[ad_name],
+                'meta_ads_serasa_pme'[thumbnail_url]
+            ),
+            "Invest", CALCULATE(SUM('meta_ads_serasa_pme'[spend])),
+            "InvestAnt", CALCULATE(SUM('meta_ads_serasa_pme'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+            "Impres", CALCULATE(SUM('meta_ads_serasa_pme'[impressions])),
+            "ImpresAnt", CALCULATE(SUM('meta_ads_serasa_pme'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+            "Clicks", CALCULATE(SUM('meta_ads_serasa_pme'[clicks])),
+            "ClicksAnt", CALCULATE(SUM('meta_ads_serasa_pme'[clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+            "Visits", CALCULATE(SUM('meta_ads_serasa_pme'[sessions])),
+            "VisitsAnt", CALCULATE(SUM('meta_ads_serasa_pme'[sessions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+            "CPS", DIVIDE([Invest], [Visits]),
+            "CPSAnt", DIVIDE([InvestAnt], [VisitsAnt]),
+            "DifCriativo", CALCULATE(DATEDIFF(MIN('meta_ads_serasa_pme'[date]), MAX('meta_ads_serasa_pme'[date]), DAY)) + 1
+        ),
+        [Invest] > 0
+    )
+
+VAR _FinalString = 
+    "EXPORT_CREATIVOS_FULL_MOM" &
+    ";;plataforma=Meta Ads" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;periodo_inicio_anterior=" & _PrevStart &
+    ";;periodo_fim_anterior=" & _PrevEnd &
+    ";;detalhamento_criativos=" & 
+    CONCATENATEX(
+        _CreativeTable,
+        "n:" & [ad_name] &
+        " | i:" & [Invest] &
+        " | i_ant:" & [InvestAnt] &
+        " | im:" & [Impres] &
+        " | im_ant:" & [ImpresAnt] &
+        " | cl:" & [Clicks] &
+        " | cl_ant:" & [ClicksAnt] &
+        " | visit:" & [Visits] &
+        " | visit_ant:" & [VisitsAnt] &
+        " | cps:" & [CPS] &
+        " | cps_ant:" & [CPSAnt] &
+        " | dif_criativo:" & [DifCriativo] &
+        " | url:" & [thumbnail_url],
+        "||"
+    ) &
+    ";;END_EXPORT"
+RETURN _FinalString`
   }
 ];

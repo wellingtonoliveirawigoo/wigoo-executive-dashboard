@@ -250,7 +250,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
           return (
             <div 
               key={idx} 
-              className={`creative-item bg-white dark:bg-wigoo-gray rounded-[3rem] border border-gray-100 dark:border-white/5 overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl flex flex-col ${isExpanded ? 'ring-2 ring-wigoo-primary' : ''} ${isPending ? 'opacity-40 grayscale-[0.5] blur-[2px]' : ''}`}
+              className={`creative-item bg-white dark:bg-wigoo-gray rounded-[3rem] border border-gray-100 dark:border-white/5 overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl flex flex-col ${isExpanded ? 'ring-2 ring-wigoo-primary' : ''}`}
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 dark:bg-wigoo-dark">
                 <CreativeImage url={creative.url} name={creative.name} />
@@ -264,9 +264,9 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                 )}
 
                 {isPending && (
-                  <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[4px] flex items-center justify-center z-10">
-                    <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/10">
-                       <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Aguardando Fila</p>
+                  <div className="absolute inset-0 bg-black/5 flex items-center justify-center z-10">
+                    <div className="bg-white/40 dark:bg-black/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/20 shadow-sm">
+                       <p className="text-[10px] font-black text-gray-800 dark:text-white uppercase tracking-[0.2em]">Aguardando Análise AI</p>
                     </div>
                   </div>
                 )}
