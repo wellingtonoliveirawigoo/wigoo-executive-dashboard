@@ -168,20 +168,34 @@ RETURN _StringBase`,
 VAR _Inicio = "{{START_DATE_FORMATTED}}"
 VAR _Fim = "{{END_DATE_FORMATTED}}"
 
+VAR _Parsed = 
+    ADDCOLUMNS(
+        SUMMARIZE('meta_ads_cea_images', 'meta_ads_cea_images'[thumbnail_url]),
+        "CleanUrl", LEFT('meta_ads_cea_images'[thumbnail_url], FIND("?", 'meta_ads_cea_images'[thumbnail_url] & "?") - 1)
+    )
+
+VAR _CleanList = SUMMARIZE(_Parsed, [CleanUrl])
+
 VAR _CreativeTable = 
     FILTER(
-        ADDCOLUMNS(
-            SUMMARIZE(
-                'meta_ads_cea_images',
-                'meta_ads_cea_images'[ad_name],
-                'meta_ads_cea_images'[thumbnail_url]
-            ),
-            "Invest", CALCULATE(SUM('meta_ads_cea_images'[spend])),
-            "Impres", CALCULATE(SUM('meta_ads_cea_images'[impressions])),
-            "Clicks", CALCULATE(SUM('meta_ads_cea_images'[clicks])),
-            "Conv", CALCULATE(SUM('meta_ads_cea_images'[actions_offsite_conversion_fb_pixel_purchase])),
-            "Rec", CALCULATE([ReceitaGA]),
-            "DifCriativo", CALCULATE(DATEDIFF(MIN('meta_ads_cea_images'[date]), MAX('meta_ads_cea_images'[date]), DAY)) + 1
+        GENERATE(
+            _CleanList,
+            VAR _CurrentCleanUrl = [CleanUrl]
+            VAR _OriginalURLs = SELECTCOLUMNS(FILTER(_Parsed, [CleanUrl] = _CurrentCleanUrl), "url", [thumbnail_url])
+            RETURN
+                CALCULATETABLE(
+                    ROW(
+                        "ad_name", MIN('meta_ads_cea_images'[ad_name]),
+                        "Invest", SUM('meta_ads_cea_images'[spend]),
+                        "Impres", SUM('meta_ads_cea_images'[impressions]),
+                        "Clicks", SUM('meta_ads_cea_images'[clicks]),
+                        "Conv", SUM('meta_ads_cea_images'[actions_offsite_conversion_fb_pixel_purchase]),
+                        "Rec", [ReceitaGA],
+                        "DifCriativo", DATEDIFF(MIN('meta_ads_cea_images'[date]), MAX('meta_ads_cea_images'[date]), DAY) + 1,
+                        "thumbnail_url", MAXX(_OriginalURLs, [url])
+                    ),
+                    TREATAS(_OriginalURLs, 'meta_ads_cea_images'[thumbnail_url])
+                )
         ),
         [Invest] > 0
     )
@@ -231,9 +245,9 @@ VAR _CreativeTable =
         ADDCOLUMNS(
             SUMMARIZE(
                 'meta_ads_serasa_pme', 
-                'meta_ads_serasa_pme'[ad_name],
-                'meta_ads_serasa_pme'[thumbnail_url]
+                'meta_ads_serasa_pme'[ad_name]
             ),
+            "thumbnail_url", CALCULATE(MIN('meta_ads_serasa_pme'[thumbnail_url])),
             "Invest", CALCULATE(SUM('meta_ads_serasa_pme'[spend])),
             "InvestAnt", CALCULATE(SUM('meta_ads_serasa_pme'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
             "Impres", CALCULATE(SUM('meta_ads_serasa_pme'[impressions])),

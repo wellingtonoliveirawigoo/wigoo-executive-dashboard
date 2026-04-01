@@ -284,7 +284,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                       {parsed.saturation}
                     </div>
                   )}
-                  {parsed && parsed.score >= 90 && (creative.revenue.current / (creative.investment.current || 1)) > 8 && (
+                  {parsed && parsed.score >= 90 && creative.conversions.current >= 3 && (
                     <div className="bg-emerald-500 text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-400 shadow-lg animate-pulse">
                       <i className="fa-solid fa-crown mr-1"></i> Super Winner
                     </div>
@@ -312,12 +312,12 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                   </div>
                   <div className="bg-gray-50 dark:bg-wigoo-dark/40 p-4 rounded-2xl border border-gray-100 dark:border-white/5 transition-colors group-hover:bg-gray-100 dark:group-hover:bg-wigoo-dark/60">
                     <p className="text-[8px] text-gray-400 font-black uppercase mb-1">
-                      {creative.metricNames?.efficiency || 'ROAS'}
+                      {creative.metricNames?.efficiency || 'CPA'}
                     </p>
                     <p className="text-sm font-black text-gray-900 dark:text-white">
                       {creative.metricNames?.efficiency === 'CPS' 
                         ? formatCurrency(creative.revenue.current)
-                        : `${(creative.revenue.current / (creative.investment.current || 1)).toFixed(2)}x`
+                        : formatCurrency(creative.conversions.current > 0 ? creative.investment.current / creative.conversions.current : creative.investment.current)
                       }
                     </p>
                   </div>
