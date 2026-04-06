@@ -222,6 +222,187 @@ VAR _FinalString =
 RETURN _FinalString`
   },
   {
+    id: 'gama',
+    name: 'Gama Italy',
+    slug: 'gama',
+    datasetId: 'ccd22cca-95b4-49be-89ca-7ef3bc33914f',
+    measuresTable: 'Medidas',
+    performanceDax: `
+// --- Período (injetado pelo frontend via CALCULATETABLE) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- Meta Ads ---
+VAR _meta_inv = CALCULATE(SUM('fb_campanhas'[spend]))
+VAR _meta_imp = CALCULATE(SUM('fb_campanhas'[impressions]))
+VAR _meta_clk = CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+
+// --- Google Ads ---
+VAR _google_inv = CALCULATE(SUM('google_ads_campanhas'[metrics_cost]))
+VAR _google_imp = CALCULATE(SUM('google_ads_campanhas'[metrics_impressions]))
+VAR _google_clk = CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+
+// --- TikTok Ads ---
+VAR _tiktok_inv = CALCULATE(SUM('tiktokAds'[spend]))
+VAR _tiktok_imp = CALCULATE(SUM('tiktokAds'[impressions]))
+VAR _tiktok_clk = CALCULATE(SUM('tiktokAds'[clicks]))
+
+// --- Totais ---
+VAR _inv_total = _meta_inv + _google_inv + _tiktok_inv
+VAR _imp_total = _meta_imp + _google_imp + _tiktok_imp
+VAR _clk_total = _meta_clk + _google_clk + _tiktok_clk
+VAR _ctr = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
+
+// --- Top 10 Campanhas (Meta + Google combinados) ---
+VAR _meta_camp =
+    SELECTCOLUMNS(
+        TOPN(5,
+            ADDCOLUMNS(
+                SUMMARIZE('fb_campanhas', 'fb_campanhas'[campaign_name]),
+                "inv", CALCULATE(SUM('fb_campanhas'[spend])),
+                "imp", CALCULATE(SUM('fb_campanhas'[impressions])),
+                "clk", CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+            ),
+            [inv], DESC),
+        "nome", 'fb_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _google_camp =
+    SELECTCOLUMNS(
+        TOPN(5,
+            ADDCOLUMNS(
+                SUMMARIZE('google_ads_campanhas', 'google_ads_campanhas'[campaign_name]),
+                "inv", CALCULATE(SUM('google_ads_campanhas'[metrics_cost])),
+                "imp", CALCULATE(SUM('google_ads_campanhas'[metrics_impressions])),
+                "clk", CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+            ),
+            [inv], DESC),
+        "nome", 'google_ads_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _all_camp = TOPN(10, UNION(_meta_camp, _google_camp), [inv], DESC)
+
+// --- Construção da String ---
+VAR _StringBase =
+    "EXPORT_MOM_GAMA" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;investimento=" & _inv_total &
+    ";;investimento_anterior=0" &
+    ";;impressoes=" & _imp_total &
+    ";;impressoes_anterior=0" &
+    ";;cliques=" & _clk_total &
+    ";;cliques_anterior=0" &
+    ";;ctr=" & _ctr &
+    ";;ctr_anterior=0" &
+    ";;conversoes=0" &
+    ";;conversoes_anterior=0" &
+    ";;cpa=0" &
+    ";;cpa_anterior=0" &
+    ";;receita=0" &
+    ";;receita_anterior=0" &
+    ";;roas=0" &
+    ";;roas_anterior=0" &
+
+    IF(_meta_inv > 0,
+        ";;meta_investimento=" & _meta_inv &
+        ";;meta_investimento_anterior=0" &
+        ";;meta_impressoes=" & _meta_imp &
+        ";;meta_impressoes_anterior=0" &
+        ";;meta_cliques=" & _meta_clk &
+        ";;meta_cliques_anterior=0" &
+        ";;meta_receita=0" &
+        ";;meta_receita_anterior=0", "") &
+
+    IF(_google_inv > 0,
+        ";;google_investimento=" & _google_inv &
+        ";;google_investimento_anterior=0" &
+        ";;google_impressoes=" & _google_imp &
+        ";;google_impressoes_anterior=0" &
+        ";;google_cliques=" & _google_clk &
+        ";;google_cliques_anterior=0" &
+        ";;google_receita=0" &
+        ";;google_receita_anterior=0", "") &
+
+    IF(_tiktok_inv > 0,
+        ";;tiktok_investimento=" & _tiktok_inv &
+        ";;tiktok_investimento_anterior=0" &
+        ";;tiktok_impressoes=" & _tiktok_imp &
+        ";;tiktok_impressoes_anterior=0" &
+        ";;tiktok_cliques=" & _tiktok_clk &
+        ";;tiktok_cliques_anterior=0" &
+        ";;tiktok_receita=0" &
+        ";;tiktok_receita_anterior=0", "") &
+
+    ";;campanhas_top10=" &
+    CONCATENATEX(
+        _all_camp,
+        "c:" & [nome] &
+        "|i:" & [inv] &
+        "|im:" & [imp] &
+        "|cl:" & [clk] &
+        "|co:0|re:0|ro:0|cp:0",
+        "||"
+    ) &
+    ";;END_EXPORT"
+
+RETURN _StringBase`,
+    creativeDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- M-1 (período anterior injetado pelo frontend) ---
+VAR _PrevStart = {{PREV_START_DATE}}
+VAR _PrevEnd = {{PREV_END_DATE}}
+
+VAR _AdList = DISTINCT(SELECTCOLUMNS('fb_ads', "ad_id", 'fb_ads'[ad_id], "ad_name", 'fb_ads'[ad_name]))
+
+VAR _CreativeTable =
+    FILTER(
+        GENERATE(
+            _AdList,
+            VAR _CurrentAdId = [ad_id]
+            RETURN
+                CALCULATETABLE(
+                    ROW(
+                        "Invest", SUM('fb_ads'[spend]),
+                        "InvestAnt", CALCULATE(SUM('fb_ads'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Impres", SUM('fb_ads'[impressions]),
+                        "ImpresAnt", CALCULATE(SUM('fb_ads'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Clicks", SUM('fb_ads'[inline_link_clicks]),
+                        "ClicksAnt", CALCULATE(SUM('fb_ads'[inline_link_clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "DifCriativo", DATEDIFF(MIN('fb_ads'[metric_date]), MAX('fb_ads'[metric_date]), DAY) + 1,
+                        "thumbnail_url", LOOKUPVALUE('fb_ad'[creative_thumbnail_url], 'fb_ad'[ad_id], _CurrentAdId)
+                    ),
+                    'fb_ads'[ad_id] = _CurrentAdId
+                )
+        ),
+        [Invest] > 0
+    )
+
+VAR _FinalString =
+    "EXPORT_CREATIVOS_FULL_MOM" &
+    ";;plataforma=Meta Ads" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;detalhamento_criativos=" &
+    CONCATENATEX(
+        _CreativeTable,
+        "n:" & [ad_name] &
+        " | i:" & [Invest] &
+        " | i_ant:" & [InvestAnt] &
+        " | im:" & [Impres] &
+        " | im_ant:" & [ImpresAnt] &
+        " | cl:" & [Clicks] &
+        " | cl_ant:" & [ClicksAnt] &
+        " | dif_criativo:" & [DifCriativo] &
+        " | url:" & [thumbnail_url],
+        "||"
+    ) &
+    ";;END_EXPORT"
+
+RETURN _FinalString`
+  },
+  {
     id: 'serasa_pme',
     name: 'Serasa PME',
     slug: 'serasa',
