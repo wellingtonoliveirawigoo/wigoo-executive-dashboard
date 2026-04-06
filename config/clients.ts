@@ -224,7 +224,7 @@ RETURN _FinalString`
   {
     id: 'gama',
     name: 'Gama Italy',
-    slug: 'gama',
+    slug: 'gama-italy',
     datasetId: 'ccd22cca-95b4-49be-89ca-7ef3bc33914f',
     measuresTable: 'Medidas',
     performanceDax: `
