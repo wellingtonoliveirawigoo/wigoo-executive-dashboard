@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [creativeModelUsed, setCreativeModelUsed] = useState('');
   const [isCreativeLoading, setIsCreativeLoading] = useState(false);
   const [creativeAnalyzedItems, setCreativeAnalyzedItems] = useState<Record<number, any>>({});
+  const [printMode, setPrintMode] = useState(false);
 
   // Getters do modo atual
   const data = viewMode === 'performance' ? perfData : creativeData;
@@ -244,19 +245,34 @@ const App: React.FC = () => {
           {creativeData && creativeData.exportType === 'CREATIVE' && viewMode === 'creative' && (
             <div className="animate-in space-y-16 w-full max-w-[1200px] flex flex-col items-center">
               <CreativeGallery
-                data={creativeData} 
+                data={creativeData}
                 insights={creativeInsights}
                 setInsights={(txt, model) => { setCreativeInsights(txt); if (model) setCreativeModelUsed(model); }}
                 isLoading={isCreativeLoading}
                 setIsLoading={setIsCreativeLoading}
                 analyzedItems={creativeAnalyzedItems}
                 setAnalyzedItems={setCreativeAnalyzedItems}
+                printMode={printMode}
               />
             </div>
           )}
         </main>
 
-        <Footer onExportPdf={() => window.print()} hasData={!!data} />
+        <Footer
+          onExportPdf={() => {
+            // 1. Ativa printMode → React re-renderiza com todos os cards expandidos
+            setPrintMode(true);
+            // 2. Aguarda um frame para o DOM atualizar, depois imprime
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                window.print();
+                // 3. Restaura estado normal após a janela de impressão fechar
+                setTimeout(() => setPrintMode(false), 500);
+              });
+            });
+          }}
+          hasData={!!data}
+        />
         <AdminModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} customPrompt={customPrompt} setCustomPrompt={setCustomPrompt} />
       </div>
   );
