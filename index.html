@@ -39,110 +39,151 @@
       body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease; }
       #root { flex: 1; display: flex; flex-direction: column; }
       
+      /* ═══════════════════════════════════════════════════════════════
+         WIGOO PDF EXPORT — ONE-PAGE CONTINUOUS
+         @page size:auto → PDF fica tão alto quanto o conteúdo
+         Nenhuma quebra forçada, tudo em uma única folha contínua
+      ═══════════════════════════════════════════════════════════════ */
       @media print {
-        @page { 
-          size: A4 portrait; 
-          margin: 15mm; 
+        @page {
+          size: auto;
+          margin: 12mm 14mm;
         }
-        
-        /* Reset de Cores para Impressão Profissional */
-        body, html, #root, main { 
-          background-color: white !important; 
-          color: #111 !important; 
-          margin: 0 !important; 
+
+        /* ── Reset global ── */
+        *, *::before, *::after {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+
+        html, body {
+          background: #ffffff !important;
+          color: #111827 !important;
+          margin: 0 !important;
           padding: 0 !important;
           width: 100% !important;
           height: auto !important;
-          -webkit-print-color-adjust: exact !important; 
-          print-color-adjust: exact !important; 
+          font-size: 11px !important;
         }
 
-        /* Esconder UI Irrelevante */
-        .no-print, .no-print-section, header, footer, button, nav, [role="button"], 
-        textarea, .admin-btn, .modal-blur, .fixed, .sticky { 
-          display: none !important; 
+        /* ── Forçar light mode no PDF ── */
+        .dark, .dark * {
+          background-color: transparent !important;
+          color: #111827 !important;
+          border-color: #e5e7eb !important;
         }
 
-        /* Layout de Relatório Excecutivo */
-        #root {
+        /* ── Remover tudo que não é conteúdo ── */
+        .no-print, header, footer,
+        button:not(.print-visible),
+        nav, textarea, input,
+        .admin-btn, .modal-blur,
+        [data-no-print],
+        .fixed, .sticky {
+          display: none !important;
+        }
+
+        /* ── Layout root ── */
+        #root, main {
+          display: block !important;
           width: 100% !important;
           max-width: none !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          display: block !important;
-        }
-
-        main {
-          width: 100% !important;
-          max-width: none !important;
           padding: 0 !important;
           margin: 0 !important;
-          gap: 40px !important;
-          display: block !important;
-        }
-
-        /* Container de 1200px local vira 100% no papel */
-        .container, .max-w-\[1200px\] {
-          max-width: none !important;
-          width: 100% !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-
-        /* Garantir que seções não quebrem no meio */
-        .card, section, .metric-card, .campaign-table, .creative-item, table, tr {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          margin-bottom: 40px !important;
-          position: relative !important;
-          display: block !important;
-          border: 1px solid #eee !important;
-          border-radius: 12px !important;
-          box-shadow: none !important;
           background: white !important;
           overflow: visible !important;
         }
 
-        /* Títulos sempre juntos do conteúdo seguinte */
-        h1, h2, h3, h4, h5 {
-          break-after: avoid !important;
+        .container, .max-w-\[1200px\] {
+          max-width: none !important;
+          width: 100% !important;
+          padding: 0 !important;
+          margin: 0 auto !important;
+        }
+
+        /* ── Proibir qualquer quebra de página ── */
+        * {
+          page-break-before: avoid !important;
           page-break-after: avoid !important;
-          color: #000 !important;
-          margin-top: 20px !important;
-        }
-
-        /* Forçar Grids e Flex para ocupar largura total */
-        .grid, .flex {
-          display: block !important; /* Colunar no PDF para evitar apertar demais */
-          width: 100% !important;
-        }
-
-        .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4 {
-          grid-template-columns: 1fr !important;
-        }
-
-        /* Exceção para mini-cartões (MetricCards) que podem ficar lado a lado */
-        .metric-grid {
-          display: grid !important;
-          grid-template-columns: repeat(2, 1fr) !important;
-          gap: 15px !important;
-        }
-
-        /* Ajuste de Gráficos Recharts */
-        .recharts-responsive-container {
-          width: 100% !important;
-          height: 350px !important;
+          page-break-inside: avoid !important;
+          break-before: avoid !important;
+          break-after: avoid !important;
           break-inside: avoid !important;
         }
 
-        /* Forçar texto visível */
-        .text-gray-400, .text-gray-500, .dark\:text-white\/40 {
-          color: #666 !important;
+        /* ── Cards e seções ── */
+        .card, section, .metric-card, .campaign-table, .creative-item {
+          border: 1px solid #e5e7eb !important;
+          border-radius: 16px !important;
+          box-shadow: none !important;
+          background: #ffffff !important;
+          overflow: visible !important;
+          margin-bottom: 20px !important;
         }
-        
-        .dark {
-          background-color: white !important;
-          color: black !important;
+
+        /* ── Grids: criativos ficam em 2 colunas no PDF ── */
+        .print-creative-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 16px !important;
+          width: 100% !important;
+        }
+
+        /* ── MetricCards: 4 colunas ── */
+        .metric-grid {
+          display: grid !important;
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 12px !important;
+        }
+
+        /* ── Textos coloridos: garantir visibilidade ── */
+        .text-gray-400, .text-gray-500 { color: #6b7280 !important; }
+        .text-gray-900 { color: #111827 !important; }
+        .text-white { color: #111827 !important; }
+        .text-wigoo-primary, [class*="text-wigoo"] { color: #FF6B35 !important; }
+        .text-emerald-500, .text-emerald-600 { color: #059669 !important; }
+        .text-rose-500 { color: #e11d48 !important; }
+        .text-amber-500 { color: #d97706 !important; }
+        .text-blue-500 { color: #3b82f6 !important; }
+
+        /* ── Backgrounds coloridos ── */
+        .bg-wigoo-primary, [class*="bg-wigoo-primary"] { background-color: #FF6B35 !important; }
+        .bg-emerald-500 { background-color: #10b981 !important; }
+        .bg-amber-500 { background-color: #f59e0b !important; }
+        .bg-rose-500 { background-color: #f43f5e !important; }
+        .bg-gray-50, .bg-gray-100 { background-color: #f9fafb !important; }
+        [class*="dark:bg-"] { background-color: transparent !important; }
+
+        /* ── Gradiente no topo dos cards ── */
+        .bg-wigoo-gradient { background: linear-gradient(135deg, #FF6B35 0%, #FF8C5A 100%) !important; }
+
+        /* ── Barras de progress (breakdown scores) ── */
+        .h-5.bg-\[\#3AB09E\] { background-color: #3AB09E !important; }
+
+        /* ── Ocultar scrollbars e animações ── */
+        .overflow-y-auto, .overflow-x-auto { overflow: visible !important; max-height: none !important; }
+        .animate-pulse, .animate-spin { animation: none !important; }
+        .animate-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+        /* ── Recharts ── */
+        .recharts-responsive-container {
+          width: 100% !important;
+          height: 280px !important;
+        }
+
+        /* ── Bordas coloridas ── */
+        [class*="border-wigoo-primary"] { border-color: #FF6B35 !important; }
+        [class*="border-l-4"] { border-left-width: 4px !important; }
+
+        /* ── Cabeçalho do relatório PDF ── */
+        .pdf-report-header {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding: 10px 0 16px !important;
+          border-bottom: 2px solid #FF6B35 !important;
+          margin-bottom: 20px !important;
         }
       }
 

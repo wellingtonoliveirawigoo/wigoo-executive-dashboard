@@ -8,6 +8,28 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ onExportPdf, hasData = false }) => {
   return (
     <footer className="mt-16 mb-10 container mx-auto px-4">
+      {/* Cabeçalho do relatório — visível SOMENTE no PDF */}
+      <div className="pdf-report-header hidden print:flex">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://www.wigoo.com.br/icon.ico?118911a3cf296aa2"
+            alt="Wigoo"
+            className="w-8 h-8"
+            referrerPolicy="no-referrer"
+          />
+          <div>
+            <p style={{ fontSize: '14px', fontWeight: 900, color: '#111827', margin: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Wigoo Digital Intelligence Hub
+            </p>
+            <p style={{ fontSize: '9px', color: '#9ca3af', margin: 0, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+              Relatório Executivo · Gerado em {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+        </div>
+        <p style={{ fontSize: '9px', color: '#9ca3af', alignSelf: 'flex-end', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          Confidencial · Uso Exclusivo
+        </p>
+      </div>
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-t border-gray-200 dark:border-wigoo-gray-light/20 pt-10">
         <div className="flex items-center gap-6 opacity-40 dark:opacity-30 hover:opacity-100 transition-all duration-500 cursor-default group">
           <div className="bg-white p-1 rounded-lg shadow-sm border border-gray-100">
@@ -41,8 +63,8 @@ const Footer: React.FC<FooterProps> = ({ onExportPdf, hasData = false }) => {
             }`}
           >
             {hasData && <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>}
-            <i className="fa-solid fa-file-export text-base"></i>
-            <span>Exportar Relatório Executivo</span>
+            <i className="fa-solid fa-file-pdf text-base"></i>
+            <span>Exportar PDF</span>
           </button>
         </div>
       </div>

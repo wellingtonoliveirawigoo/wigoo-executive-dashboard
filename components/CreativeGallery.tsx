@@ -11,6 +11,8 @@ interface Props {
   setIsLoading: (val: boolean) => void;
   analyzedItems: Record<number, { text: string; hasError: boolean }>;
   setAnalyzedItems: React.Dispatch<React.SetStateAction<Record<number, { text: string; hasError: boolean }>>>;
+  /** Quando true, força todos os cards expandidos (usado no export PDF) */
+  printMode?: boolean;
 }
 
 const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isValid: boolean) => void }> = ({ url, name, onValidated }) => {
@@ -53,7 +55,7 @@ const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isVali
   );
 };
 
-const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems }) => {
+const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
@@ -237,13 +239,13 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full">
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {
           const itemData = analyzedItems[idx];
           const parsed = parseAnalysisText(itemData?.text, idx + 1);
           const isProcessing = processingIndex === idx;
           const isPending = !itemData && !isProcessing;
-          const isExpanded = expandedId === idx;
+          const isExpanded = expandedId === idx || printMode;
           const currentCTR = (creative.clicks.current / (creative.impressions.current || 1) * 100);
           const formattedCTR = currentCTR.toFixed(2).replace('.', ',') + '%';
 
@@ -400,13 +402,15 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                       </div>
                     )}
 
-                    <button 
-                      onClick={() => setExpandedId(isExpanded ? null : idx)}
-                      className="w-full py-3.5 rounded-2xl border border-gray-200 dark:border-white/10 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-wigoo-primary hover:border-wigoo-primary hover:bg-wigoo-primary/5 transition-all flex items-center justify-center gap-2"
-                    >
-                      {isExpanded ? 'Recolher Relatório' : 'Ver Diagnóstico Completo'}
-                      <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
-                    </button>
+                    {!printMode && (
+                      <button
+                        onClick={() => setExpandedId(isExpanded ? null : idx)}
+                        className="w-full py-3.5 rounded-2xl border border-gray-200 dark:border-white/10 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-wigoo-primary hover:border-wigoo-primary hover:bg-wigoo-primary/5 transition-all flex items-center justify-center gap-2"
+                      >
+                        {isExpanded ? 'Recolher Relatório' : 'Ver Diagnóstico Completo'}
+                        <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-3 animate-pulse py-6">
