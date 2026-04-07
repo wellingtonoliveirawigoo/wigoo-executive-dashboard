@@ -9,12 +9,14 @@ import PlatformPerformance from './components/PlatformPerformance';
 import CampaignTable from './components/CampaignTable';
 import AIInsights from './components/AIInsights';
 import CreativeGallery from './components/CreativeGallery';
+import CreativeUpload from './components/CreativeUpload';
 import BackendComparison from './components/BackendComparison';
 import Footer from './components/Footer';
 import AdminModal from './components/AdminModal';
 import LiveConnectionPanel from './components/LiveConnectionPanel';
 import LandingPage from './components/LandingPage';
 import { CLIENTS } from './config/clients';
+import { Creative } from './types';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<'performance' | 'creative'>('performance');
@@ -22,7 +24,8 @@ const App: React.FC = () => {
   // Roteamento Simples por Pathname
   const path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase(); // Limpa barras
   const lockedClient = CLIENTS.find(c => c.slug.toLowerCase() === path);
-  const isLanding = path === '' || (!lockedClient && path !== 'admin'); 
+  const isLanding = path === '' || (!lockedClient && path !== 'admin');
+  const isCreativesOnly = !!lockedClient?.creativesOnly;
   
   const [rawInput, setRawInput] = useState('');
   const [userQuery, setUserQuery] = useState('');
@@ -81,6 +84,24 @@ const App: React.FC = () => {
     window.scrollTo({ top: 600, behavior: 'smooth' });
   };
 
+  const handleUploadedCreatives = (creatives: Creative[]) => {
+    const zero = { current: 0, previous: 0 };
+    const uploadData: DashboardData = {
+      periodStart: '—',
+      periodEnd: '—',
+      investment: zero, impressions: zero, cliques: zero,
+      conversions: zero, receita: zero, roas: zero, cpa: zero, ctr: zero,
+      platforms: [], campaigns: [],
+      creatives,
+      exportType: 'CREATIVE',
+    };
+    setCreativeData(uploadData);
+    setCreativeInsights('');
+    setCreativeAnalyzedItems({});
+    setViewMode('creative');
+    window.scrollTo({ top: 600, behavior: 'smooth' });
+  };
+
   const handleLiveDataLoaded = (parsedData: DashboardData) => {
     if (viewMode === 'performance') {
       setPerfData(parsedData);
@@ -107,60 +128,73 @@ const App: React.FC = () => {
       />
         
         <main className="flex-grow container mx-auto px-4 py-12 space-y-12 flex flex-col items-center">
-          <div className="w-full max-w-[1200px] flex justify-center no-print">
-            <div className="bg-white/50 dark:bg-wigoo-gray/50 backdrop-blur-xl p-2 rounded-3xl border border-gray-200 dark:border-white/5 shadow-xl flex items-center">
-              <button 
-                onClick={() => setViewMode('performance')}
-                className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${viewMode === 'performance' ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30' : 'text-gray-500 hover:text-wigoo-primary'}`}
-              >
-                <i className="fa-solid fa-chart-line mr-2"></i> Performance
-              </button>
-              <button 
-                onClick={() => setViewMode('creative')}
-                className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${viewMode === 'creative' ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30' : 'text-gray-500 hover:text-wigoo-primary'}`}
-              >
-                <i className="fa-solid fa-wand-magic-sparkles mr-2"></i> Analisar Criativo
-              </button>
+          {/* Tabs Performance / Creative — apenas para clientes com Power BI */}
+          {!isCreativesOnly && (
+            <div className="w-full max-w-[1200px] flex justify-center no-print">
+              <div className="bg-white/50 dark:bg-wigoo-gray/50 backdrop-blur-xl p-2 rounded-3xl border border-gray-200 dark:border-white/5 shadow-xl flex items-center">
+                <button
+                  onClick={() => setViewMode('performance')}
+                  className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${viewMode === 'performance' ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30' : 'text-gray-500 hover:text-wigoo-primary'}`}
+                >
+                  <i className="fa-solid fa-chart-line mr-2"></i> Performance
+                </button>
+                <button
+                  onClick={() => setViewMode('creative')}
+                  className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${viewMode === 'creative' ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30' : 'text-gray-500 hover:text-wigoo-primary'}`}
+                >
+                  <i className="fa-solid fa-wand-magic-sparkles mr-2"></i> Analisar Criativo
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="w-full max-w-[1200px] no-print space-y-8 flex flex-col items-center">
-            {/* Seletor de Método de Entrada */}
-            <div className="flex bg-gray-100 dark:bg-wigoo-dark/50 p-1.5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-inner">
-               <button 
-                onClick={() => setInputMethod('paste')}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-               >
-                Export Manual (Copiar/Colar)
-               </button>
-               <button 
-                onClick={() => setInputMethod('live')}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'live' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-               >
-                <i className="fa-solid fa-bolt mr-2 text-amber-500"></i> Conexão Live (API)
-               </button>
+          {/* Painel de entrada: upload (creativesOnly) ou PBI/paste (outros) */}
+          {isCreativesOnly ? (
+            /* Modo upload — B3 e similares */
+            !creativeData && (
+              <div className="w-full max-w-[1200px] no-print flex flex-col items-center">
+                <CreativeUpload onImagesLoaded={handleUploadedCreatives} />
+              </div>
+            )
+          ) : (
+            <div className="w-full max-w-[1200px] no-print space-y-8 flex flex-col items-center">
+              {/* Seletor de Método de Entrada */}
+              <div className="flex bg-gray-100 dark:bg-wigoo-dark/50 p-1.5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-inner">
+                 <button
+                  onClick={() => setInputMethod('paste')}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                 >
+                  Export Manual (Copiar/Colar)
+                 </button>
+                 <button
+                  onClick={() => setInputMethod('live')}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'live' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                 >
+                  <i className="fa-solid fa-bolt mr-2 text-amber-500"></i> Conexão Live (API)
+                 </button>
+              </div>
+
+              {inputMethod === 'live' ? (
+                <LiveConnectionPanel
+                  onDataLoaded={handleLiveDataLoaded}
+                  isLoading={isSyncing}
+                  setIsLoading={setIsSyncing}
+                  viewMode={viewMode}
+                  lockedClient={lockedClient}
+                />
+              ) : (
+                <InputSection
+                  viewMode={viewMode}
+                  input={rawInput}
+                  setInput={setRawInput}
+                  userQuery={userQuery}
+                  setUserQuery={setUserQuery}
+                  onProcess={handleProcessData}
+                  isCollapsed={!!data}
+                />
+              )}
             </div>
-
-            {inputMethod === 'live' ? (
-              <LiveConnectionPanel 
-                onDataLoaded={handleLiveDataLoaded}
-                isLoading={isSyncing}
-                setIsLoading={setIsSyncing}
-                viewMode={viewMode}
-                lockedClient={lockedClient}
-              />
-            ) : (
-              <InputSection 
-                viewMode={viewMode}
-                input={rawInput} 
-                setInput={setRawInput} 
-                userQuery={userQuery}
-                setUserQuery={setUserQuery}
-                onProcess={handleProcessData} 
-                isCollapsed={!!data}
-              />
-            )}
-          </div>
+          )}
 
           {perfData && perfData.exportType === 'PERFORMANCE' && viewMode === 'performance' && (
             <div className="animate-in space-y-16 w-full max-w-[1200px] flex flex-col items-center pb-20">
@@ -195,9 +229,21 @@ const App: React.FC = () => {
             </div>
           )}
 
+          {/* Botão para reiniciar upload no modo creativesOnly */}
+          {isCreativesOnly && creativeData && (
+            <div className="no-print flex justify-center">
+              <button
+                onClick={() => { setCreativeData(null); setCreativeAnalyzedItems({}); setCreativeInsights(''); }}
+                className="px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 border border-gray-200 dark:border-white/10 hover:text-wigoo-primary hover:border-wigoo-primary/40 transition-all flex items-center gap-2"
+              >
+                <i className="fa-solid fa-arrow-left"></i> Analisar novos criativos
+              </button>
+            </div>
+          )}
+
           {creativeData && creativeData.exportType === 'CREATIVE' && viewMode === 'creative' && (
             <div className="animate-in space-y-16 w-full max-w-[1200px] flex flex-col items-center">
-              <CreativeGallery 
+              <CreativeGallery
                 data={creativeData} 
                 insights={creativeInsights}
                 setInsights={(txt, model) => { setCreativeInsights(txt); if (model) setCreativeModelUsed(model); }}
