@@ -323,6 +323,28 @@ async function callGroq(modelName: string, prompt: string, images: { data: strin
 }
 
 // ============================================================================
+// DETECÇÃO DE RECUSA (Content Policy)
+// ============================================================================
+
+function isRefusal(text: string | undefined | null): boolean {
+  if (!text || text.trim().length < 20) return true;
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("i'm sorry, i can't") ||
+    lower.includes("i'm sorry, i cannot") ||
+    lower.includes("i can't assist with that") ||
+    lower.includes("i cannot assist with that") ||
+    lower.includes("i'm unable to assist") ||
+    lower.includes("i'm not able to assist") ||
+    lower.includes("i cannot provide") ||
+    lower.includes("sorry, i can't help") ||
+    lower.includes("lamentamos, mas não") ||
+    // Mensagem curta com "sorry" sem o formato esperado
+    (lower.includes("sorry") && text.length < 200 && !lower.includes("nota final"))
+  );
+}
+
+// ============================================================================
 
 // FUNÇÕES EXPORTADAS (Lógica Principal)
 // ============================================================================
@@ -366,24 +388,40 @@ export const analyzeSingleCreative = async (creative: Creative, id: number): Pro
 
   const systemInstruction = "Você é o motor Wigoo Vision AI. Seu papel é a análise técnica e visual de criativos de anúncios. Use os dados de performance e a imagem para fornecer um diagnóstico rigoroso e ações recomendadas.";
 
-  // 1. Tenta OpenAI Primeiro
+  // 1. Tenta OpenAI com imagem
   let result = await callOpenAI(prompt, images, systemInstruction);
-  
-  // 2. Fallback para Groq (Llama Vision)
-  if (!result) {
-      result = await callGroq('llama-3.2-90b-vision-preview', prompt, images, systemInstruction);
+
+  // Se OpenAI recusou a imagem (content policy), retenta sem imagem
+  if (result && isRefusal(result.text)) {
+    console.warn(`Wigoo Vision AI - OpenAI recusou imagem do criativo ${id}, retentando sem imagem...`);
+    result = await callOpenAI(prompt, [], systemInstruction);
+  }
+
+  // 2. Fallback para Groq (Llama Vision) se OpenAI falhou ou recusou sem imagem também
+  if (!result || isRefusal(result.text)) {
+    result = await callGroq('llama-3.2-90b-vision-preview', prompt, images, systemInstruction);
+    // Se Groq recusou com imagem, tenta sem
+    if (result && isRefusal(result.text)) {
+      console.warn(`Wigoo Vision AI - Groq recusou imagem do criativo ${id}, retentando sem imagem...`);
+      result = await callGroq('llama-3.3-70b-versatile', prompt, [], systemInstruction);
+    }
   }
 
   // 3. Fallback para Google Gemini
-  if (!result) {
-      result = await callGemini('gemini-1.5-flash', prompt, images, systemInstruction);
+  if (!result || isRefusal(result.text)) {
+    result = await callGemini('gemini-1.5-flash', prompt, images, systemInstruction);
   }
 
-  return result || { 
-    text: `**Criativo ${id} — Diagnóstico Multimodal**\n\n[Erro na análise técnica da Wigoo AI - Verifique Chaves de API]`, 
-    model: "None",
-    error: "API_ERROR"
-  };
+  // Se mesmo sem imagem nenhuma engine funcionou, retorna erro para retry
+  if (!result || isRefusal(result.text)) {
+    return {
+      text: `**Criativo ${id} — Diagnóstico Multimodal**\n\n[Erro na análise técnica da Wigoo AI - Verifique Chaves de API]`,
+      model: "None",
+      error: "API_ERROR"
+    };
+  }
+
+  return result;
 };
 
 export const generateInsights = async (data: DashboardData, customPrompt?: string, userQuery?: string): Promise<InsightResponse> => {

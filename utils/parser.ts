@@ -308,7 +308,7 @@ export const parsePbiExport = (input: string): DashboardData | null => {
 
       return {
         name: pMap['c'] || 'Campanha Desconhecida',
-        source: 'Auto',
+        source: pMap['src'] || pMap['p'] || 'Auto',
         investment,
         impressions: parseSingleNumber(pMap['im']),
         clicks: parseSingleNumber(pMap['cl']),

@@ -91,9 +91,11 @@ const CampaignTable: React.FC<{ campaigns: Campaign[] }> = ({ campaigns }) => {
                       </span>
                     </td>
                     <td className="px-6 md:px-10 py-6 text-right font-mono text-xs text-gray-500 dark:text-wigoo-light/60">{formatCurrency(c.investment)}</td>
-                    <td className="px-6 md:px-10 py-6 text-right font-mono font-bold text-gray-900 dark:text-white">{formatCurrency(c.revenue)}</td>
-                    <td className={`px-6 md:px-10 py-6 text-right font-black text-lg ${c.roas > 8 ? 'text-emerald-600' : 'text-wigoo-primary'}`}>
-                      {c.roas.toFixed(2)}x
+                    <td className={`px-6 md:px-10 py-6 text-right font-mono font-bold ${c.revenue > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-300 dark:text-white/20'}`}>
+                      {c.revenue > 0 ? formatCurrency(c.revenue) : '—'}
+                    </td>
+                    <td className={`px-6 md:px-10 py-6 text-right font-black text-lg ${c.roas > 8 ? 'text-emerald-600' : c.roas > 0 ? 'text-wigoo-primary' : 'text-gray-300 dark:text-white/20'}`}>
+                      {c.roas > 0 ? `${c.roas.toFixed(2)}x` : '—'}
                     </td>
                   </tr>
                 ))}
