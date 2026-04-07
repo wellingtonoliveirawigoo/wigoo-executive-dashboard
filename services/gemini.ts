@@ -111,7 +111,23 @@ export interface InsightResponse {
 }
 
 async function urlToBase64(url: string): Promise<{ data: string, mimeType: string } | null> {
-  if (!url || !url.startsWith('http')) return null;
+  if (!url) return null;
+
+  // Data URLs (de uploads locais) — extrai base64 diretamente sem fetch
+  if (url.startsWith('data:')) {
+    try {
+      const commaIdx = url.indexOf(',');
+      if (commaIdx === -1) return null;
+      const header = url.substring(0, commaIdx);
+      const data = url.substring(commaIdx + 1);
+      const mimeType = header.split(':')[1]?.split(';')[0] || 'image/jpeg';
+      return { data, mimeType };
+    } catch {
+      return null;
+    }
+  }
+
+  if (!url.startsWith('http')) return null;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -381,6 +397,20 @@ export const analyzeSingleCreative = async (creative: Creative, id: number): Pro
       .replace(/Receita:/g, `${revLabel}:`)
       .replace(/ROAS:/g, `${effLabel}:`)
       .replace(/ROAS/g, effLabel);
+  }
+
+  // Detecta criativo sem dados de performance (ex: upload manual B3)
+  const hasPerformanceData =
+    creative.investment.current > 0 ||
+    creative.impressions.current > 0 ||
+    creative.clicks.current > 0;
+
+  if (!hasPerformanceData) {
+    prompt +=
+      '\n\n⚠️ MODO ANÁLISE VISUAL PURA: Não há dados de performance disponíveis para este criativo.' +
+      ' Baseie 100% da pontuação na análise visual: composição, hook, CTA, prova social, hierarquia visual e adequação à plataforma inferida.' +
+      ' Para os critérios de CTR/ROAS/conversão, use o potencial visual observado como base.' +
+      ' Não penalize pela ausência de dados — pontue com rigor visual. Use sempre casas decimais.';
   }
 
   const imgData = await urlToBase64(creative.url);

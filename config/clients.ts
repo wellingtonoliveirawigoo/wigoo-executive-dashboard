@@ -7,6 +7,8 @@ export interface ClientConfig {
   measuresTable: string;
   performanceDax: string;
   creativeDax: string;
+  /** Quando true, ignora Power BI e mostra apenas upload de imagens para análise visual */
+  creativesOnly?: boolean;
 }
 
 export const CLIENTS: ClientConfig[] = [
@@ -490,5 +492,17 @@ VAR _FinalString =
     ) &
     ";;END_EXPORT"
 RETURN _FinalString`
-  }
+  },
+
+  // ─── B3 — Creative-Only (upload manual de imagens) ───────────────────────
+  {
+    id: 'b3',
+    name: 'B3',
+    slug: 'b3',
+    creativesOnly: true,
+    datasetId: '',
+    measuresTable: '',
+    performanceDax: '',
+    creativeDax: '',
+  },
 ];
