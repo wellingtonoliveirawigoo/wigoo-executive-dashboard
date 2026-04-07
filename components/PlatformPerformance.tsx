@@ -176,7 +176,9 @@ const PlatformPerformance: React.FC<Props> = ({ data, theme = 'light' }) => {
                 <div className="min-w-0">
                   <p className="text-[7px] font-black text-gray-400 dark:text-wigoo-light/20 uppercase tracking-[0.2em] mb-0.5 truncate">CPA</p>
                   <div className="flex flex-col">
-                     <span className={`font-bold text-gray-900 dark:text-white ${getDynamicFontSize(formatCurrency(p.cpa.current), 'text-[13px]')} truncate`}>{formatCurrency(p.cpa.current)}</span>
+                     <span className={`font-bold ${p.cpa.current > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-300 dark:text-white/20'} ${getDynamicFontSize(p.cpa.current > 0 ? formatCurrency(p.cpa.current) : '—', 'text-[13px]')} truncate`}>
+                       {p.cpa.current > 0 ? formatCurrency(p.cpa.current) : '—'}
+                     </span>
                      {p.cpa.diff !== undefined && p.cpa.diff !== 0 && p.cpa.previous > 0 && (
                        <span className={`text-[8px] font-bold ${p.cpa.diff > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
                          {p.cpa.diff > 0 ? '+' : ''}{p.cpa.diff.toFixed(2)} YoY
