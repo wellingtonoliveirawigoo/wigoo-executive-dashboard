@@ -2,10 +2,11 @@ import React from 'react';
 
 interface FooterProps {
   onExportPdf: () => void;
+  onExportPdfExpanded?: () => void;
   hasData?: boolean;
 }
 
-const Footer: React.FC<FooterProps> = ({ onExportPdf, hasData = false }) => {
+const Footer: React.FC<FooterProps> = ({ onExportPdf, onExportPdfExpanded, hasData = false }) => {
   return (
     <footer className="mt-16 mb-10 container mx-auto px-4">
       {/* Cabeçalho do relatório — visível SOMENTE no PDF */}
@@ -49,16 +50,16 @@ const Footer: React.FC<FooterProps> = ({ onExportPdf, hasData = false }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 no-print">
-          <button 
+        <div className="flex items-center gap-3 no-print">
+          <button
             onClick={() => {
               console.log("Botão PDF clicado. hasData:", hasData);
               onExportPdf();
             }}
             disabled={!hasData}
-            className={`group relative transition-all font-black text-xs uppercase tracking-widest py-4.5 px-12 rounded-2xl flex items-center gap-4 shadow-xl overflow-hidden ${
-              hasData 
-                ? 'bg-wigoo-gradient hover:scale-105 active:scale-95 text-white shadow-wigoo-primary/30' 
+            className={`group relative transition-all font-black text-xs uppercase tracking-widest py-4.5 px-8 rounded-2xl flex items-center gap-3 shadow-xl overflow-hidden ${
+              hasData
+                ? 'bg-wigoo-gradient hover:scale-105 active:scale-95 text-white shadow-wigoo-primary/30'
                 : 'bg-gray-200 dark:bg-wigoo-gray-light text-gray-400 dark:text-wigoo-light/20 cursor-not-allowed'
             }`}
           >
@@ -66,6 +67,26 @@ const Footer: React.FC<FooterProps> = ({ onExportPdf, hasData = false }) => {
             <i className="fa-solid fa-file-pdf text-base"></i>
             <span>Exportar PDF</span>
           </button>
+
+          {onExportPdfExpanded && (
+            <button
+              onClick={() => {
+                console.log("Botão PDF Expandido clicado. hasData:", hasData);
+                onExportPdfExpanded();
+              }}
+              disabled={!hasData}
+              className={`group relative transition-all font-black text-xs uppercase tracking-widest py-4.5 px-8 rounded-2xl flex items-center gap-3 shadow-xl overflow-hidden ${
+                hasData
+                  ? 'bg-gray-900 dark:bg-white hover:scale-105 active:scale-95 text-white dark:text-gray-900 shadow-gray-900/20'
+                  : 'bg-gray-200 dark:bg-wigoo-gray-light text-gray-400 dark:text-wigoo-light/20 cursor-not-allowed'
+              }`}
+            >
+              {hasData && <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>}
+              <i className="fa-solid fa-file-pdf text-base"></i>
+              <i className="fa-solid fa-expand text-xs -ml-1"></i>
+              <span>Exportar PDF Expandido</span>
+            </button>
+          )}
         </div>
       </div>
       
