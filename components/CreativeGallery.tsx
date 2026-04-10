@@ -248,9 +248,6 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
 
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {
-          // Oculta criativos com imagens em branco ou quebradas
-          if (invalidIndices.has(idx)) return null;
-
           const itemData = analyzedItems[idx];
           const parsed = parseAnalysisText(itemData?.text, idx + 1);
           const isProcessing = processingIndex === idx;
