@@ -152,7 +152,7 @@ export const parsePbiExport = (input: string): DashboardData | null => {
       if (lowerUrl.includes('75341531_494485104475166')) return false; // Placeholder padrão do catálogo FB
       if (!lowerUrl.includes('http')) return false;
       // Só aceita URLs de imagens reais (jpg, jpeg, png com conteúdo real)
-      const isImageUrl = lowerUrl.includes('.jpg') || lowerUrl.includes('.jpeg') || lowerUrl.includes('.png') || lowerUrl.includes('.webp') || lowerUrl.includes('scontent');
+      const isImageUrl = lowerUrl.includes('.jpg') || lowerUrl.includes('.jpeg') || lowerUrl.includes('.png') || lowerUrl.includes('.webp') || lowerUrl.includes('scontent') || lowerUrl.includes('external-') || lowerUrl.includes('fbcdn.net');
       return isImageUrl;
     });
 
