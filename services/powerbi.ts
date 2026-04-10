@@ -37,6 +37,8 @@ export const executePowerBiQuery = async (
   const injectedDax = baseDax
     .replace(/{{START_DATE_FORMATTED}}/g, startDateFormatted)
     .replace(/{{END_DATE_FORMATTED}}/g, endDateFormatted)
+    .replace(/{{START_DATE_DAX}}/g, `DATE(${start[0]}, ${start[1]}, ${start[2]})`)
+    .replace(/{{END_DATE_DAX}}/g, `DATE(${end[0]}, ${end[1]}, ${end[2]})`)
     .replace(/{{PREV_START_DATE}}/g, `DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]})`)
     .replace(/{{PREV_END_DATE}}/g, `DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})`);
 

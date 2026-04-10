@@ -595,14 +595,26 @@ VAR _StringBase =
 RETURN _StringBase`,
     creativeDax: `
 // --- Período (injetado pelo frontend) ---
-VAR _Inicio = "{{START_DATE_FORMATTED}}"
-VAR _Fim = "{{END_DATE_FORMATTED}}"
+VAR _Inicio    = "{{START_DATE_FORMATTED}}"
+VAR _Fim       = "{{END_DATE_FORMATTED}}"
+VAR _StartDate = {{START_DATE_DAX}}
+VAR _EndDate   = {{END_DATE_DAX}}
 
 // --- M-1 (período anterior injetado pelo frontend) ---
 VAR _PrevStart = {{PREV_START_DATE}}
-VAR _PrevEnd = {{PREV_END_DATE}}
+VAR _PrevEnd   = {{PREV_END_DATE}}
 
-VAR _AdList = DISTINCT(SELECTCOLUMNS('facebook_ads_serasa_pme', "ad_id", 'facebook_ads_serasa_pme'[ad_id], "ad_name", 'facebook_ads_serasa_pme'[ad_name]))
+// facebook_ads_serasa_pme não tem relacionamento com dCalendario —
+// filtramos diretamente por metric_date para garantir o período correto
+VAR _AdList =
+    DISTINCT(SELECTCOLUMNS(
+        FILTER('facebook_ads_serasa_pme',
+            'facebook_ads_serasa_pme'[metric_date] >= _StartDate &&
+            'facebook_ads_serasa_pme'[metric_date] <= _EndDate
+        ),
+        "ad_id",   'facebook_ads_serasa_pme'[ad_id],
+        "ad_name", 'facebook_ads_serasa_pme'[ad_name]
+    ))
 
 VAR _CreativeTable =
     FILTER(
@@ -612,16 +624,24 @@ VAR _CreativeTable =
             RETURN
                 CALCULATETABLE(
                     ROW(
-                        "Invest", SUM('facebook_ads_serasa_pme'[spend]),
-                        "InvestAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
-                        "Impres", SUM('facebook_ads_serasa_pme'[impressions]),
-                        "ImpresAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
-                        "Clicks", SUM('facebook_ads_serasa_pme'[inline_link_clicks]),
-                        "ClicksAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[inline_link_clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Invest",    SUM('facebook_ads_serasa_pme'[spend]),
+                        "InvestAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[spend]),
+                                        'facebook_ads_serasa_pme'[metric_date] >= _PrevStart,
+                                        'facebook_ads_serasa_pme'[metric_date] <= _PrevEnd),
+                        "Impres",    SUM('facebook_ads_serasa_pme'[impressions]),
+                        "ImpresAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[impressions]),
+                                        'facebook_ads_serasa_pme'[metric_date] >= _PrevStart,
+                                        'facebook_ads_serasa_pme'[metric_date] <= _PrevEnd),
+                        "Clicks",    SUM('facebook_ads_serasa_pme'[inline_link_clicks]),
+                        "ClicksAnt", CALCULATE(SUM('facebook_ads_serasa_pme'[inline_link_clicks]),
+                                        'facebook_ads_serasa_pme'[metric_date] >= _PrevStart,
+                                        'facebook_ads_serasa_pme'[metric_date] <= _PrevEnd),
                         "DifCriativo", DATEDIFF(MIN('facebook_ads_serasa_pme'[metric_date]), MAX('facebook_ads_serasa_pme'[metric_date]), DAY) + 1,
                         "thumbnail_url", LOOKUPVALUE('facebook_ads_DETAILS_serasa_pme'[creative_thumbnail_url], 'facebook_ads_DETAILS_serasa_pme'[ad_id], _CurrentAdId)
                     ),
-                    'facebook_ads_serasa_pme'[ad_id] = _CurrentAdId
+                    'facebook_ads_serasa_pme'[ad_id] = _CurrentAdId,
+                    'facebook_ads_serasa_pme'[metric_date] >= _StartDate,
+                    'facebook_ads_serasa_pme'[metric_date] <= _EndDate
                 )
         ),
         [Invest] > 0

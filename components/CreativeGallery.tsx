@@ -62,6 +62,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
   const [invalidIndices, setInvalidIndices] = useState<Set<number>>(new Set());
+  const [validationDone, setValidationDone] = useState(false);
 
   const validateImages = async () => {
     const valid = new Set<number>();
@@ -73,36 +74,10 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         let resolved = false;
 
         img.referrerPolicy = "no-referrer";
-        img.crossOrigin = "anonymous"; // Habilita acesso ao canvas para análise de brilho
         img.onload = () => {
           if (resolved) return;
+          // Rejeita apenas imagens minúsculas (placeholder/ícone)
           if (img.width < 100 || img.height < 100) {
-            invalid.add(index);
-            resolved = true;
-            return resolve();
-          }
-          // Detecção de imagem em branco via canvas — amostragem de 64×64 pixels
-          let isBlank = false;
-          try {
-            const canvas = document.createElement('canvas');
-            const S = 64;
-            canvas.width = S;
-            canvas.height = S;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, S, S);
-              const { data: px } = ctx.getImageData(0, 0, S, S);
-              let bright = 0;
-              for (let p = 0; p < px.length; p += 4) {
-                // Pixel quase-branco: R, G, B todos > 235
-                if (px[p] > 235 && px[p + 1] > 235 && px[p + 2] > 235) bright++;
-              }
-              isBlank = bright / (S * S) > 0.88;
-            }
-          } catch {
-            // CORS bloqueou acesso ao canvas — aceita a imagem (sem penalizar)
-          }
-          if (isBlank) {
             invalid.add(index);
           } else {
             valid.add(index);
@@ -131,6 +106,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
     await Promise.all((data.creatives || []).map((c, i) => checkImage(c.url, i)));
     setValidIndices(valid);
     setInvalidIndices(invalid);
+    setValidationDone(true);
     return invalid;
   };
 
@@ -200,11 +176,12 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
   };
 
   useEffect(() => {
-    if (data && data.creatives && data.creatives.length > 0 && !isLoading && Object.keys(analyzedItems).length === 0) {
-      // Valida imagens primeiro (detecta brancas/quebradas), depois dispara a análise só nos válidos
+    // validationDone garante que só roda uma vez por conjunto de dados
+    if (data && data.creatives && data.creatives.length > 0 && !isLoading && !validationDone) {
+      // Valida imagens primeiro (detecta quebradas/minúsculas), depois dispara análise só nos válidos
       validateImages().then(invalid => fetchInsightsSequential(invalid));
     }
-  }, [data, isLoading, analyzedItems]);
+  }, [data]);
 
   const parseAnalysisText = (raw: string | undefined, id: number) => {
     if (!raw) return null;
@@ -271,9 +248,6 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
 
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {
-          // Oculta criativos com imagens em branco ou quebradas
-          if (invalidIndices.has(idx)) return null;
-
           const itemData = analyzedItems[idx];
           const parsed = parseAnalysisText(itemData?.text, idx + 1);
           const isProcessing = processingIndex === idx;
