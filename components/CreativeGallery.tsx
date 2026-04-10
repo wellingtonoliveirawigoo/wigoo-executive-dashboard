@@ -11,8 +11,10 @@ interface Props {
   setIsLoading: (val: boolean) => void;
   analyzedItems: Record<number, { text: string; hasError: boolean }>;
   setAnalyzedItems: React.Dispatch<React.SetStateAction<Record<number, { text: string; hasError: boolean }>>>;
-  /** Quando true, força todos os cards expandidos (usado no export PDF) */
+  /** Quando true, oculta os botões de expansão (usado no export PDF) */
   printMode?: boolean;
+  /** Quando true, força TODOS os diagnósticos expandidos (usado no export PDF expandido) */
+  forceExpandAll?: boolean;
 }
 
 const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isValid: boolean) => void }> = ({ url, name, onValidated }) => {
@@ -55,7 +57,7 @@ const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isVali
   );
 };
 
-const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false }) => {
+const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false, forceExpandAll = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
@@ -69,11 +71,38 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
       return new Promise((resolve) => {
         const img = new Image();
         let resolved = false;
-        
+
         img.referrerPolicy = "no-referrer";
+        img.crossOrigin = "anonymous"; // Habilita acesso ao canvas para análise de brilho
         img.onload = () => {
           if (resolved) return;
           if (img.width < 100 || img.height < 100) {
+            invalid.add(index);
+            resolved = true;
+            return resolve();
+          }
+          // Detecção de imagem em branco via canvas — amostragem de 64×64 pixels
+          let isBlank = false;
+          try {
+            const canvas = document.createElement('canvas');
+            const S = 64;
+            canvas.width = S;
+            canvas.height = S;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, S, S);
+              const { data: px } = ctx.getImageData(0, 0, S, S);
+              let bright = 0;
+              for (let p = 0; p < px.length; p += 4) {
+                // Pixel quase-branco: R, G, B todos > 235
+                if (px[p] > 235 && px[p + 1] > 235 && px[p + 2] > 235) bright++;
+              }
+              isBlank = bright / (S * S) > 0.88;
+            }
+          } catch {
+            // CORS bloqueou acesso ao canvas — aceita a imagem (sem penalizar)
+          }
+          if (isBlank) {
             invalid.add(index);
           } else {
             valid.add(index);
@@ -88,7 +117,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
           resolve();
         };
         img.src = url;
-        
+
         setTimeout(() => {
           if (!resolved) {
             invalid.add(index);
@@ -102,22 +131,22 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
     await Promise.all((data.creatives || []).map((c, i) => checkImage(c.url, i)));
     setValidIndices(valid);
     setInvalidIndices(invalid);
-    return valid;
+    return invalid;
   };
 
-  const fetchInsightsSequential = async () => {
+  const fetchInsightsSequential = async (skipIndices: Set<number> = new Set()) => {
     if (!data.creatives || data.creatives.length === 0) return;
-    
+
     setIsLoading(true);
     setAnalyzedItems({});
     setInsights('');
     setProcessingIndex(-1);
-    
+
     // Pequeno delay para garantir que o estado de loading foi processado pela UI
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Process ALL indices
-    const indicesToProcess = data.creatives.map((_, i) => i);
+
+    // Processa apenas criativos com imagens válidas (exclui brancos/quebrados)
+    const indicesToProcess = data.creatives.map((_, i) => i).filter(i => !skipIndices.has(i));
     
     let accumulatedInsights = "";
     const failedIndices: number[] = [];
@@ -172,7 +201,8 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
 
   useEffect(() => {
     if (data && data.creatives && data.creatives.length > 0 && !isLoading && Object.keys(analyzedItems).length === 0) {
-      fetchInsightsSequential();
+      // Valida imagens primeiro (detecta brancas/quebradas), depois dispara a análise só nos válidos
+      validateImages().then(invalid => fetchInsightsSequential(invalid));
     }
   }, [data, isLoading, analyzedItems]);
 
@@ -241,11 +271,14 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
 
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {
+          // Oculta criativos com imagens em branco ou quebradas
+          if (invalidIndices.has(idx)) return null;
+
           const itemData = analyzedItems[idx];
           const parsed = parseAnalysisText(itemData?.text, idx + 1);
           const isProcessing = processingIndex === idx;
           const isPending = !itemData && !isProcessing;
-          const isExpanded = expandedId === idx || printMode;
+          const isExpanded = expandedId === idx || forceExpandAll;
           const currentCTR = (creative.clicks.current / (creative.impressions.current || 1) * 100);
           const formattedCTR = currentCTR.toFixed(2).replace('.', ',') + '%';
 

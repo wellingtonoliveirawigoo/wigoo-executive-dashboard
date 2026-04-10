@@ -46,6 +46,7 @@ const App: React.FC = () => {
   const [isCreativeLoading, setIsCreativeLoading] = useState(false);
   const [creativeAnalyzedItems, setCreativeAnalyzedItems] = useState<Record<number, any>>({});
   const [printMode, setPrintMode] = useState(false);
+  const [printExpandAll, setPrintExpandAll] = useState(false);
 
   // Getters do modo atual
   const data = viewMode === 'performance' ? perfData : creativeData;
@@ -253,6 +254,7 @@ const App: React.FC = () => {
                 analyzedItems={creativeAnalyzedItems}
                 setAnalyzedItems={setCreativeAnalyzedItems}
                 printMode={printMode}
+                forceExpandAll={printExpandAll}
               />
             </div>
           )}
@@ -260,14 +262,25 @@ const App: React.FC = () => {
 
         <Footer
           onExportPdf={() => {
-            // 1. Ativa printMode → React re-renderiza com todos os cards expandidos
             setPrintMode(true);
-            // 2. Aguarda um frame para o DOM atualizar, depois imprime
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 window.print();
-                // 3. Restaura estado normal após a janela de impressão fechar
                 setTimeout(() => setPrintMode(false), 500);
+              });
+            });
+          }}
+          onExportPdfExpanded={() => {
+            // Expande todos os diagnósticos antes de imprimir
+            setPrintExpandAll(true);
+            setPrintMode(true);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                window.print();
+                setTimeout(() => {
+                  setPrintMode(false);
+                  setPrintExpandAll(false);
+                }, 500);
               });
             });
           }}
