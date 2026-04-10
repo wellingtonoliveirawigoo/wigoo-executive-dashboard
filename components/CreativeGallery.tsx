@@ -73,7 +73,10 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         let resolved = false;
 
         img.referrerPolicy = "no-referrer";
-        img.crossOrigin = "anonymous"; // Habilita acesso ao canvas para análise de brilho
+        // NÃO definir crossOrigin aqui: CDNs externos (Meta, etc.) não enviam
+        // headers CORS anônimos e o browser dispararia onerror derrubando todas
+        // as imagens. O canvas tenta crossOrigin em uma img separada; se falhar,
+        // apenas aceita a imagem sem penalizar.
         img.onload = () => {
           if (resolved) return;
           if (img.width < 100 || img.height < 100) {
@@ -81,34 +84,42 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
             resolved = true;
             return resolve();
           }
-          // Detecção de imagem em branco via canvas — amostragem de 64×64 pixels
-          let isBlank = false;
-          try {
-            const canvas = document.createElement('canvas');
-            const S = 64;
-            canvas.width = S;
-            canvas.height = S;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, S, S);
-              const { data: px } = ctx.getImageData(0, 0, S, S);
-              let bright = 0;
-              for (let p = 0; p < px.length; p += 4) {
-                // Pixel quase-branco: R, G, B todos > 235
-                if (px[p] > 235 && px[p + 1] > 235 && px[p + 2] > 235) bright++;
+          // Detecção de imagem em branco via canvas — imagem auxiliar com crossOrigin
+          const canvasImg = new Image();
+          canvasImg.crossOrigin = "anonymous";
+          canvasImg.referrerPolicy = "no-referrer";
+          canvasImg.onload = () => {
+            let isBlank = false;
+            try {
+              const canvas = document.createElement('canvas');
+              const S = 64;
+              canvas.width = S;
+              canvas.height = S;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(canvasImg, 0, 0, S, S);
+                const { data: px } = ctx.getImageData(0, 0, S, S);
+                let bright = 0;
+                for (let p = 0; p < px.length; p += 4) {
+                  // Pixel quase-branco: R, G, B todos > 235
+                  if (px[p] > 235 && px[p + 1] > 235 && px[p + 2] > 235) bright++;
+                }
+                isBlank = bright / (S * S) > 0.88;
               }
-              isBlank = bright / (S * S) > 0.88;
+            } catch {
+              // Canvas tainted — aceita a imagem sem penalizar
             }
-          } catch {
-            // CORS bloqueou acesso ao canvas — aceita a imagem (sem penalizar)
-          }
-          if (isBlank) {
-            invalid.add(index);
-          } else {
+            if (isBlank) { invalid.add(index); } else { valid.add(index); }
+            resolved = true;
+            resolve();
+          };
+          canvasImg.onerror = () => {
+            // CDN bloqueou CORS anônimo — aceita a imagem normalmente
             valid.add(index);
-          }
-          resolved = true;
-          resolve();
+            resolved = true;
+            resolve();
+          };
+          canvasImg.src = url;
         };
         img.onerror = () => {
           if (resolved) return;
