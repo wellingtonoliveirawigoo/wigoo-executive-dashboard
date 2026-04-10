@@ -87,7 +87,8 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         };
         img.onerror = () => {
           if (resolved) return;
-          invalid.add(index);
+          // Falha de rede/CORS — não sabemos se é branca; trata como válida para IA analisar
+          valid.add(index);
           resolved = true;
           resolve();
         };
@@ -95,7 +96,8 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
 
         setTimeout(() => {
           if (!resolved) {
-            invalid.add(index);
+            // Timeout — também trata como válida (benefício da dúvida)
+            valid.add(index);
             resolved = true;
             resolve();
           }
