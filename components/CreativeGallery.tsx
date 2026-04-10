@@ -62,6 +62,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
   const [invalidIndices, setInvalidIndices] = useState<Set<number>>(new Set());
+  const [validationDone, setValidationDone] = useState(false);
 
   const validateImages = async () => {
     const valid = new Set<number>();
@@ -73,53 +74,16 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         let resolved = false;
 
         img.referrerPolicy = "no-referrer";
-        // NÃO definir crossOrigin aqui: CDNs externos (Meta, etc.) não enviam
-        // headers CORS anônimos e o browser dispararia onerror derrubando todas
-        // as imagens. O canvas tenta crossOrigin em uma img separada; se falhar,
-        // apenas aceita a imagem sem penalizar.
         img.onload = () => {
           if (resolved) return;
+          // Rejeita apenas imagens minúsculas (placeholder/ícone)
           if (img.width < 100 || img.height < 100) {
             invalid.add(index);
-            resolved = true;
-            return resolve();
-          }
-          // Detecção de imagem em branco via canvas — imagem auxiliar com crossOrigin
-          const canvasImg = new Image();
-          canvasImg.crossOrigin = "anonymous";
-          canvasImg.referrerPolicy = "no-referrer";
-          canvasImg.onload = () => {
-            let isBlank = false;
-            try {
-              const canvas = document.createElement('canvas');
-              const S = 64;
-              canvas.width = S;
-              canvas.height = S;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.drawImage(canvasImg, 0, 0, S, S);
-                const { data: px } = ctx.getImageData(0, 0, S, S);
-                let bright = 0;
-                for (let p = 0; p < px.length; p += 4) {
-                  // Pixel quase-branco: R, G, B todos > 235
-                  if (px[p] > 235 && px[p + 1] > 235 && px[p + 2] > 235) bright++;
-                }
-                isBlank = bright / (S * S) > 0.88;
-              }
-            } catch {
-              // Canvas tainted — aceita a imagem sem penalizar
-            }
-            if (isBlank) { invalid.add(index); } else { valid.add(index); }
-            resolved = true;
-            resolve();
-          };
-          canvasImg.onerror = () => {
-            // CDN bloqueou CORS anônimo — aceita a imagem normalmente
+          } else {
             valid.add(index);
-            resolved = true;
-            resolve();
-          };
-          canvasImg.src = url;
+          }
+          resolved = true;
+          resolve();
         };
         img.onerror = () => {
           if (resolved) return;
@@ -142,6 +106,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
     await Promise.all((data.creatives || []).map((c, i) => checkImage(c.url, i)));
     setValidIndices(valid);
     setInvalidIndices(invalid);
+    setValidationDone(true);
     return invalid;
   };
 
@@ -211,11 +176,12 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
   };
 
   useEffect(() => {
-    if (data && data.creatives && data.creatives.length > 0 && !isLoading && Object.keys(analyzedItems).length === 0) {
-      // Valida imagens primeiro (detecta brancas/quebradas), depois dispara a análise só nos válidos
+    // validationDone garante que só roda uma vez por conjunto de dados
+    if (data && data.creatives && data.creatives.length > 0 && !isLoading && !validationDone) {
+      // Valida imagens primeiro (detecta quebradas/minúsculas), depois dispara análise só nos válidos
       validateImages().then(invalid => fetchInsightsSequential(invalid));
     }
-  }, [data, isLoading, analyzedItems]);
+  }, [data]);
 
   const parseAnalysisText = (raw: string | undefined, id: number) => {
     if (!raw) return null;
