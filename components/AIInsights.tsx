@@ -1,38 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { generateInsights, getFallbackAnalysis } from '../services/gemini';
 import { DashboardData } from '../types';
+import { formatTokenCount } from '../utils/tokenStorage';
 
 interface AIInsightsProps {
   data: DashboardData;
   insights: string;
   modelName?: string;
-  setInsights: (val: string, model?: string) => void;
+  setInsights: (val: string, model?: string, tokens?: number) => void;
   isLoading: boolean;
   setIsLoading: (val: boolean) => void;
   customPrompt?: string;
   userQuery?: string;
+  clientId?: string;
 }
 
-const AIInsights: React.FC<AIInsightsProps> = ({ 
-  data, 
-  insights, 
+const AIInsights: React.FC<AIInsightsProps> = ({
+  data,
+  insights,
   modelName,
-  setInsights, 
-  isLoading, 
+  setInsights,
+  isLoading,
   setIsLoading,
   customPrompt,
-  userQuery
+  userQuery,
+  clientId
 }) => {
   const [isFallback, setIsFallback] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [lastTokensUsed, setLastTokensUsed] = useState<number | undefined>(undefined);
 
   const fetchInsights = async () => {
     setIsLoading(true);
     setIsFallback(false);
     try {
       const result = await generateInsights(data, customPrompt, userQuery);
-      // ATENÇÃO: Aqui usamos result.text e result.model
-      setInsights(result.text, result.model);
+      setInsights(result.text, result.model, result.tokensUsed);
+      setLastTokensUsed(result.tokensUsed);
     } catch (error) {
       setInsights(getFallbackAnalysis(data), "Error Fallback");
       setIsFallback(true);
@@ -264,10 +268,16 @@ const AIInsights: React.FC<AIInsightsProps> = ({
           </div>
         </div>
 
-        <div className="mt-14 flex justify-end opacity-20 dark:opacity-10 relative z-10">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 dark:text-white">
-             Engine: {modelName || 'Neural Wigoo-V4'} • {new Date().toLocaleDateString('pt-BR')}
-           </p>
+        <div className="mt-14 flex justify-end items-center gap-6 relative z-10">
+          {lastTokensUsed && (
+            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-wigoo-primary/50 dark:text-wigoo-accent/50">
+              <i className="fa-solid fa-microchip text-[8px]"></i>
+              {formatTokenCount(lastTokensUsed)} tokens
+            </div>
+          )}
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 dark:text-white opacity-20 dark:opacity-10">
+            Engine: {modelName || 'Neural Wigoo-V4'} • {new Date().toLocaleDateString('pt-BR')}
+          </p>
         </div>
       </section>
 

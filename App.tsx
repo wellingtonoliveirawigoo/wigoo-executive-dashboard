@@ -17,6 +17,7 @@ import LiveConnectionPanel from './components/LiveConnectionPanel';
 import LandingPage from './components/LandingPage';
 import { CLIENTS } from './config/clients';
 import { Creative } from './types';
+import { addTokens } from './utils/tokenStorage';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<'performance' | 'creative'>('performance');
@@ -27,6 +28,9 @@ const App: React.FC = () => {
   const isLanding = path === '' || (!lockedClient && path !== 'admin');
   const isCreativesOnly = !!lockedClient?.creativesOnly;
   
+  const [selectedClientId, setSelectedClientId] = useState(lockedClient?.id || CLIENTS[0].id);
+  const clientId = lockedClient?.id || selectedClientId;
+
   const [rawInput, setRawInput] = useState('');
   const [userQuery, setUserQuery] = useState('');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -183,6 +187,8 @@ const App: React.FC = () => {
                   setIsLoading={setIsSyncing}
                   viewMode={viewMode}
                   lockedClient={lockedClient}
+                  selectedClientId={selectedClientId}
+                  onClientSelect={setSelectedClientId}
                 />
               ) : (
                 <InputSection
@@ -218,15 +224,16 @@ const App: React.FC = () => {
               <BackendComparison data={perfData} />
               {perfData.campaigns.length > 0 && <CampaignTable campaigns={perfData.campaigns} />}
               
-              <AIInsights 
-                data={perfData} 
-                insights={perfInsights} 
+              <AIInsights
+                data={perfData}
+                insights={perfInsights}
                 modelName={perfModelUsed}
-                setInsights={(txt, model) => { setPerfInsights(txt); if (model) setPerfModelUsed(model); }}
+                setInsights={(txt, model, tokens) => { setPerfInsights(txt); if (model) setPerfModelUsed(model); if (tokens) addTokens(clientId, tokens); }}
                 isLoading={isPerfLoading}
                 setIsLoading={setIsPerfLoading}
                 customPrompt={customPrompt || undefined}
                 userQuery={userQuery}
+                clientId={clientId}
               />
             </div>
           )}
@@ -255,6 +262,7 @@ const App: React.FC = () => {
                 setAnalyzedItems={setCreativeAnalyzedItems}
                 printMode={printMode}
                 forceExpandAll={printExpandAll}
+                clientId={clientId}
               />
             </div>
           )}

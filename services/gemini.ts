@@ -108,6 +108,7 @@ export interface InsightResponse {
   text: string;
   model: string;
   error?: string;
+  tokensUsed?: number;
 }
 
 async function urlToBase64(url: string): Promise<{ data: string, mimeType: string } | null> {
@@ -207,9 +208,10 @@ async function callOpenAI(prompt: string, images: { data: string, mimeType: stri
     }
 
     const json = await response.json();
-    return { 
-        text: json.choices?.[0]?.message?.content || "", 
-        model: "gpt-4o" 
+    return {
+        text: json.choices?.[0]?.message?.content || "",
+        model: "gpt-4o",
+        tokensUsed: json.usage?.total_tokens
     };
 
   } catch (err: any) {
@@ -327,9 +329,10 @@ async function callGroq(modelName: string, prompt: string, images: { data: strin
     }
 
     const json = await response.json();
-    return { 
-        text: json.choices?.[0]?.message?.content || "", 
-        model: `Groq ${modelName}`
+    return {
+        text: json.choices?.[0]?.message?.content || "",
+        model: `Groq ${modelName}`,
+        tokensUsed: json.usage?.total_tokens
     };
 
   } catch (err: any) {
