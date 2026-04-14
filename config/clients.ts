@@ -431,10 +431,7 @@ RETURN _FinalString`
     id: 'casadatoalha',
     name: 'Casa da Toalha',
     slug: 'casa-da-toalha',
-<<<<<<< HEAD
     bqDataset: 'CasaDaToalha',
-=======
->>>>>>> origin/main
     datasetId: 'cf6dded6-68aa-46c6-9e2b-295eade30979',
     measuresTable: 'Medidas',
     performanceDax: `
