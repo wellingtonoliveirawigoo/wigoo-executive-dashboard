@@ -123,16 +123,16 @@ const CampaignTable: React.FC<{ campaigns: Campaign[] }> = ({ campaigns }) => {
                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                 />
-                <Bar 
-                  dataKey="roas" 
-                  name="ROAS" 
-                  radius={[0, 4, 4, 0]} 
+                <Bar
+                  dataKey="investment"
+                  name="Investimento"
+                  radius={[0, 4, 4, 0]}
                   barSize={24}
                   isAnimationActive={true}
                 >
-                  <LabelList 
-                    dataKey="revenue" 
-                    position="right" 
+                  <LabelList
+                    dataKey="investment"
+                    position="right"
                     formatter={(val: number) => formatCurrency(val)}
                     style={{ fontSize: '10px', fontWeight: 'bold', fill: 'currentColor', opacity: 0.8 }}
                     offset={10}

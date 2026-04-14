@@ -1,5 +1,7 @@
 const KEY_PREFIX = 'wigoo_tokens_';
 
+export const MONTHLY_TOKEN_LIMIT = 500_000;
+
 function getMonthKey(): string {
   const n = new Date();
   return `${n.getFullYear()}_${n.getMonth() + 1}`;
@@ -10,6 +12,7 @@ export function addTokens(clientId: string, count: number): void {
   const key = `${KEY_PREFIX}${clientId}_${getMonthKey()}`;
   const current = parseInt(localStorage.getItem(key) || '0', 10);
   localStorage.setItem(key, String(current + count));
+  window.dispatchEvent(new CustomEvent('wigoo-tokens-updated', { detail: { clientId } }));
 }
 
 export function getMonthlyTokens(clientId: string): number {
