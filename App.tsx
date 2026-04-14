@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import AdminModal from './components/AdminModal';
 import LiveConnectionPanel from './components/LiveConnectionPanel';
 import LandingPage from './components/LandingPage';
+import TokenUsageBar from './components/TokenUsageBar';
 import { CLIENTS } from './config/clients';
 import { Creative } from './types';
 import { addTokens } from './utils/tokenStorage';
@@ -295,6 +296,7 @@ const App: React.FC = () => {
           hasData={!!data}
         />
         <AdminModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} customPrompt={customPrompt} setCustomPrompt={setCustomPrompt} />
+        <TokenUsageBar clientId={clientId} />
       </div>
   );
 };
