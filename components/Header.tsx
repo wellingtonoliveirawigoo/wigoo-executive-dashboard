@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenAdmin, theme, toggleTheme, client
         </div>
         <div className="h-8 w-px bg-gray-200 dark:bg-wigoo-gray-light/30 hidden sm:block"></div>
         <div className="hidden sm:flex flex-col">
-          <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Executive Dashboard</h1>
+          <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Dashboard Executivo</h1>
           <p className="text-[10px] text-wigoo-primary dark:text-wigoo-accent font-bold uppercase tracking-widest mt-1">
             {clientName ? (
               <span className="flex items-center gap-1.5">
@@ -64,13 +64,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenAdmin, theme, toggleTheme, client
           <p className="text-sm font-mono text-wigoo-primary dark:text-wigoo-accent font-bold">{time.toLocaleTimeString('pt-BR')}</p>
         </div>
         
-        <button 
-          onClick={onOpenAdmin}
-          className="p-3 text-gray-400 dark:text-wigoo-light/40 hover:text-gray-900 dark:hover:text-white transition-all bg-gray-100 dark:bg-wigoo-gray-light/20 hover:bg-gray-200 dark:hover:bg-wigoo-gray-light/40 rounded-2xl border border-gray-200 dark:border-white/5"
-          title="Configurações Admin"
-        >
-          <i className="fa-solid fa-sliders text-lg"></i>
-        </button>
       </div>
     </header>
   );
