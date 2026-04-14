@@ -423,6 +423,556 @@ VAR _FinalString =
 
 RETURN _FinalString`
   },
+
+  // ─── Casa da Toalha ──────────────────────────────────────────────────────────
+  {
+    id: 'casadatoalha',
+    name: 'Casa da Toalha',
+    slug: 'casa-da-toalha',
+    datasetId: 'cf6dded6-68aa-46c6-9e2b-295eade30979',
+    measuresTable: 'Medidas',
+    performanceDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- Meta Ads ---
+VAR _meta_inv = CALCULATE(SUM('fb_campanhas'[spend]))
+VAR _meta_imp = CALCULATE(SUM('fb_campanhas'[impressions]))
+VAR _meta_clk = CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+VAR _meta_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Meta Ads")
+
+// --- Google Ads ---
+VAR _google_inv = CALCULATE(SUM('google_ads_campanhas'[metrics_cost]))
+VAR _google_imp = CALCULATE(SUM('google_ads_campanhas'[metrics_impressions]))
+VAR _google_clk = CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+VAR _google_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Google Ads")
+
+// --- GA4 Global (fonte de verdade — prioridade sobre pixel Meta) ---
+VAR _ga4_rec   = CALCULATE(SUM('GA4_Origem'[totalrevenue]))
+VAR _ga4_sess  = CALCULATE(SUM('GA4_Origem'[sessions]))
+VAR _ga4_users = CALCULATE(SUM('GA4_Origem'[totalusers]))
+VAR _ga4_trans = CALCULATE(SUM('GA4_Origem'[transactions]))
+
+// --- Totais ---
+VAR _inv_total = _meta_inv + _google_inv
+VAR _rec_total = _ga4_rec
+VAR _imp_total = _meta_imp + _google_imp
+VAR _clk_total = _meta_clk + _google_clk
+VAR _ctr  = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
+VAR _roas = IF(_inv_total > 0, DIVIDE(_rec_total, _inv_total), 0)
+VAR _cpa  = IF(_ga4_trans > 0, DIVIDE(_inv_total, _ga4_trans), 0)
+
+// --- Top 10 Campanhas (Meta + Google combinados) ---
+VAR _meta_camp =
+    SELECTCOLUMNS(
+        TOPN(5,
+            ADDCOLUMNS(
+                SUMMARIZE('fb_campanhas', 'fb_campanhas'[campaign_name]),
+                "inv", CALCULATE(SUM('fb_campanhas'[spend])),
+                "imp", CALCULATE(SUM('fb_campanhas'[impressions])),
+                "clk", CALCULATE(SUM('fb_campanhas'[inline_link_clicks])),
+                "rec", CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Meta Ads")
+            ),
+            [inv], DESC),
+        "nome", 'fb_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk], "rec", [rec])
+
+VAR _google_camp =
+    SELECTCOLUMNS(
+        TOPN(5,
+            ADDCOLUMNS(
+                SUMMARIZE('google_ads_campanhas', 'google_ads_campanhas'[campaign_name]),
+                "inv", CALCULATE(SUM('google_ads_campanhas'[metrics_cost])),
+                "imp", CALCULATE(SUM('google_ads_campanhas'[metrics_impressions])),
+                "clk", CALCULATE(SUM('google_ads_campanhas'[metrics_clicks])),
+                "rec", CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Google Ads")
+            ),
+            [inv], DESC),
+        "nome", 'google_ads_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk], "rec", [rec])
+
+VAR _all_camp = TOPN(10, UNION(_meta_camp, _google_camp), [inv], DESC)
+
+VAR _StringBase =
+    "EXPORT_MOM_CASADATOALHA" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;investimento=" & _inv_total &
+    ";;investimento_anterior=0" &
+    ";;impressoes=" & _imp_total &
+    ";;impressoes_anterior=0" &
+    ";;cliques=" & _clk_total &
+    ";;cliques_anterior=0" &
+    ";;ctr=" & _ctr &
+    ";;ctr_anterior=0" &
+    ";;conversoes=" & _ga4_trans &
+    ";;conversoes_anterior=0" &
+    ";;cpa=" & _cpa &
+    ";;cpa_anterior=0" &
+    ";;receita=" & _rec_total &
+    ";;receita_anterior=0" &
+    ";;roas=" & _roas &
+    ";;roas_anterior=0" &
+
+    IF(_meta_inv > 0,
+        ";;meta_investimento=" & _meta_inv &
+        ";;meta_investimento_anterior=0" &
+        ";;meta_impressoes=" & _meta_imp &
+        ";;meta_impressoes_anterior=0" &
+        ";;meta_cliques=" & _meta_clk &
+        ";;meta_cliques_anterior=0" &
+        ";;meta_receita=" & _meta_rec &
+        ";;meta_receita_anterior=0", "") &
+
+    IF(_google_inv > 0,
+        ";;google_investimento=" & _google_inv &
+        ";;google_investimento_anterior=0" &
+        ";;google_impressoes=" & _google_imp &
+        ";;google_impressoes_anterior=0" &
+        ";;google_cliques=" & _google_clk &
+        ";;google_cliques_anterior=0" &
+        ";;google_receita=" & _google_rec &
+        ";;google_receita_anterior=0", "") &
+
+    ";;ga4_sessoes=" & _ga4_sess &
+    ";;ga4_sessoes_anterior=0" &
+    ";;ga4_usuarios=" & _ga4_users &
+    ";;ga4_usuarios_anterior=0" &
+    ";;ga4_transacoes=" & _ga4_trans &
+    ";;ga4_transacoes_anterior=0" &
+    ";;ga4_receita=" & _ga4_rec &
+    ";;ga4_receita_anterior=0" &
+
+    ";;campanhas_top10=" &
+    CONCATENATEX(
+        _all_camp,
+        "c:" & [nome] &
+        "|i:" & [inv] &
+        "|im:" & [imp] &
+        "|cl:" & [clk] &
+        "|co:0|re:" & [rec] & "|ro:0|cp:0",
+        "||"
+    ) &
+    ";;END_EXPORT"
+
+RETURN _StringBase`,
+    creativeDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- M-1 (período anterior injetado pelo frontend) ---
+VAR _PrevStart = {{PREV_START_DATE}}
+VAR _PrevEnd = {{PREV_END_DATE}}
+
+VAR _AdList = DISTINCT(SELECTCOLUMNS('fb_ads', "ad_id", 'fb_ads'[ad_id], "ad_name", 'fb_ads'[ad_name]))
+
+VAR _CreativeTable =
+    FILTER(
+        GENERATE(
+            _AdList,
+            VAR _CurrentAdId = [ad_id]
+            RETURN
+                CALCULATETABLE(
+                    ROW(
+                        "Invest",    SUM('fb_ads'[spend]),
+                        "InvestAnt", CALCULATE(SUM('fb_ads'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Impres",    SUM('fb_ads'[impressions]),
+                        "ImpresAnt", CALCULATE(SUM('fb_ads'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Clicks",    SUM('fb_ads'[inline_link_clicks]),
+                        "ClicksAnt", CALCULATE(SUM('fb_ads'[inline_link_clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Rec",       SUM('fb_ads'[value_purchase]),
+                        "DifCriativo", DATEDIFF(MIN('fb_ads'[metric_date]), MAX('fb_ads'[metric_date]), DAY) + 1,
+                        "thumbnail_url", LOOKUPVALUE('fb_ad'[creative_thumbnail_url], 'fb_ad'[ad_id], _CurrentAdId)
+                    ),
+                    'fb_ads'[ad_id] = _CurrentAdId
+                )
+        ),
+        [Invest] > 0 && NOT(ISBLANK([thumbnail_url]))
+    )
+
+VAR _FinalString =
+    "EXPORT_CREATIVOS_FULL_MOM" &
+    ";;plataforma=Meta Ads" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;detalhamento_criativos=" &
+    CONCATENATEX(
+        TOPN(30, _CreativeTable, [Invest], DESC),
+        "n:" & [ad_name] &
+        " | i:" & [Invest] &
+        " | i_ant:" & [InvestAnt] &
+        " | im:" & [Impres] &
+        " | im_ant:" & [ImpresAnt] &
+        " | cl:" & [Clicks] &
+        " | cl_ant:" & [ClicksAnt] &
+        " | co:0" &
+        " | re:" & [Rec] &
+        " | dif_criativo:" & [DifCriativo] &
+        " | url:" & [thumbnail_url],
+        "||"
+    ) &
+    ";;END_EXPORT"
+RETURN _FinalString`
+  },
+
+  // ─── Dabelle ─────────────────────────────────────────────────────────────────
+  {
+    id: 'dabelle',
+    name: 'Dabelle',
+    slug: 'dabelle',
+    datasetId: '027b28bb-3e26-4aee-97a4-a4324e95ca35',
+    measuresTable: 'Medidas',
+    performanceDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- Meta Ads ---
+VAR _meta_inv = CALCULATE(SUM('fb_campanhas'[spend]))
+VAR _meta_imp = CALCULATE(SUM('fb_campanhas'[impressions]))
+VAR _meta_clk = CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+VAR _meta_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Meta Ads")
+
+// --- Google Ads ---
+VAR _google_inv = CALCULATE(SUM('google_ads_campanhas'[metrics_cost]))
+VAR _google_imp = CALCULATE(SUM('google_ads_campanhas'[metrics_impressions]))
+VAR _google_clk = CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+VAR _google_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Google Ads")
+
+// --- GA4 Global (fonte de verdade para receita) ---
+VAR _ga4_rec   = CALCULATE(SUM('GA4_Origem'[totalrevenue]))
+VAR _ga4_sess  = CALCULATE(SUM('GA4_Origem'[sessions]))
+VAR _ga4_users = CALCULATE(SUM('GA4_Origem'[totalusers]))
+VAR _ga4_trans = CALCULATE(SUM('GA4_Origem'[transactions]))
+
+// --- Totais ---
+VAR _inv_total = _meta_inv + _google_inv
+VAR _rec_total = _ga4_rec
+VAR _imp_total = _meta_imp + _google_imp
+VAR _clk_total = _meta_clk + _google_clk
+VAR _ctr  = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
+VAR _roas = IF(_inv_total > 0, DIVIDE(_rec_total, _inv_total), 0)
+VAR _cpa  = IF(_ga4_trans > 0, DIVIDE(_inv_total, _ga4_trans), 0)
+
+// --- Top 10 Campanhas (Meta + Google combinados) ---
+VAR _meta_camp =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('fb_campanhas', 'fb_campanhas'[campaign_name]),
+            "inv", CALCULATE(SUM('fb_campanhas'[spend])),
+            "imp", CALCULATE(SUM('fb_campanhas'[impressions])),
+            "clk", CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+        ), [inv], DESC),
+        "nome", 'fb_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _google_camp =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('google_ads_campanhas', 'google_ads_campanhas'[campaign_name]),
+            "inv", CALCULATE(SUM('google_ads_campanhas'[metrics_cost])),
+            "imp", CALCULATE(SUM('google_ads_campanhas'[metrics_impressions])),
+            "clk", CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+        ), [inv], DESC),
+        "nome", 'google_ads_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _all_camp = TOPN(10, UNION(_meta_camp, _google_camp), [inv], DESC)
+
+VAR _StringBase =
+    "EXPORT_MOM_DABELLE" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;investimento=" & _inv_total &
+    ";;investimento_anterior=0" &
+    ";;impressoes=" & _imp_total &
+    ";;impressoes_anterior=0" &
+    ";;cliques=" & _clk_total &
+    ";;cliques_anterior=0" &
+    ";;ctr=" & _ctr &
+    ";;ctr_anterior=0" &
+    ";;conversoes=" & _ga4_trans &
+    ";;conversoes_anterior=0" &
+    ";;cpa=" & _cpa &
+    ";;cpa_anterior=0" &
+    ";;receita=" & _rec_total &
+    ";;receita_anterior=0" &
+    ";;roas=" & _roas &
+    ";;roas_anterior=0" &
+
+    IF(_meta_inv > 0,
+        ";;meta_investimento=" & _meta_inv &
+        ";;meta_investimento_anterior=0" &
+        ";;meta_impressoes=" & _meta_imp &
+        ";;meta_impressoes_anterior=0" &
+        ";;meta_cliques=" & _meta_clk &
+        ";;meta_cliques_anterior=0" &
+        ";;meta_receita=" & _meta_rec &
+        ";;meta_receita_anterior=0", "") &
+
+    IF(_google_inv > 0,
+        ";;google_investimento=" & _google_inv &
+        ";;google_investimento_anterior=0" &
+        ";;google_impressoes=" & _google_imp &
+        ";;google_impressoes_anterior=0" &
+        ";;google_cliques=" & _google_clk &
+        ";;google_cliques_anterior=0" &
+        ";;google_receita=" & _google_rec &
+        ";;google_receita_anterior=0", "") &
+
+    ";;ga4_sessoes=" & _ga4_sess &
+    ";;ga4_sessoes_anterior=0" &
+    ";;ga4_usuarios=" & _ga4_users &
+    ";;ga4_usuarios_anterior=0" &
+    ";;ga4_transacoes=" & _ga4_trans &
+    ";;ga4_transacoes_anterior=0" &
+    ";;ga4_receita=" & _ga4_rec &
+    ";;ga4_receita_anterior=0" &
+
+    ";;campanhas_top10=" &
+    CONCATENATEX(
+        _all_camp,
+        "c:" & [nome] & "|i:" & [inv] & "|im:" & [imp] & "|cl:" & [clk] & "|co:0|re:0|ro:0|cp:0",
+        "||"
+    ) &
+    ";;END_EXPORT"
+
+RETURN _StringBase`,
+    creativeDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- M-1 (período anterior injetado pelo frontend) ---
+VAR _PrevStart = {{PREV_START_DATE}}
+VAR _PrevEnd = {{PREV_END_DATE}}
+
+VAR _AdList = DISTINCT(SELECTCOLUMNS('fb_ads', "ad_id", 'fb_ads'[ad_id], "ad_name", 'fb_ads'[ad_name]))
+
+VAR _CreativeTable =
+    FILTER(
+        GENERATE(
+            _AdList,
+            VAR _CurrentAdId = [ad_id]
+            RETURN
+                CALCULATETABLE(
+                    ROW(
+                        "Invest",    SUM('fb_ads'[spend]),
+                        "InvestAnt", CALCULATE(SUM('fb_ads'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Impres",    SUM('fb_ads'[impressions]),
+                        "ImpresAnt", CALCULATE(SUM('fb_ads'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Clicks",    SUM('fb_ads'[inline_link_clicks]),
+                        "ClicksAnt", CALCULATE(SUM('fb_ads'[inline_link_clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "DifCriativo", DATEDIFF(MIN('fb_ads'[metric_date]), MAX('fb_ads'[metric_date]), DAY) + 1,
+                        "thumbnail_url", LOOKUPVALUE('fb_ad'[creative_thumbnail_url], 'fb_ad'[ad_id], _CurrentAdId)
+                    ),
+                    'fb_ads'[ad_id] = _CurrentAdId
+                )
+        ),
+        [Invest] > 0 && NOT(ISBLANK([thumbnail_url]))
+    )
+
+VAR _FinalString =
+    "EXPORT_CREATIVOS_FULL_MOM" &
+    ";;plataforma=Meta Ads" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;detalhamento_criativos=" &
+    CONCATENATEX(
+        TOPN(30, _CreativeTable, [Invest], DESC),
+        "n:" & [ad_name] &
+        " | i:" & [Invest] &
+        " | i_ant:" & [InvestAnt] &
+        " | im:" & [Impres] &
+        " | im_ant:" & [ImpresAnt] &
+        " | cl:" & [Clicks] &
+        " | cl_ant:" & [ClicksAnt] &
+        " | co:0 | re:0" &
+        " | dif_criativo:" & [DifCriativo] &
+        " | url:" & [thumbnail_url],
+        "||"
+    ) &
+    ";;END_EXPORT"
+RETURN _FinalString`
+  },
+
+  // ─── Eico ─────────────────────────────────────────────────────────────────────
+  {
+    id: 'eico',
+    name: 'Eico',
+    slug: 'eico',
+    datasetId: 'b97a60cd-42fd-48b2-bfbe-9d364594c40f',
+    measuresTable: 'Medidas',
+    performanceDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- Meta Ads ---
+VAR _meta_inv = CALCULATE(SUM('fb_campanhas'[spend]))
+VAR _meta_imp = CALCULATE(SUM('fb_campanhas'[impressions]))
+VAR _meta_clk = CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+VAR _meta_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Meta Ads")
+
+// --- Google Ads ---
+VAR _google_inv = CALCULATE(SUM('google_ads_campanhas'[metrics_cost]))
+VAR _google_imp = CALCULATE(SUM('google_ads_campanhas'[metrics_impressions]))
+VAR _google_clk = CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+VAR _google_rec = CALCULATE(SUM('GA4_Origem'[totalrevenue]), 'GA4_Origem'[Canal] = "Google Ads")
+
+// --- GA4 Global (fonte de verdade para receita) ---
+VAR _ga4_rec   = CALCULATE(SUM('GA4_Origem'[totalrevenue]))
+VAR _ga4_sess  = CALCULATE(SUM('GA4_Origem'[sessions]))
+VAR _ga4_users = CALCULATE(SUM('GA4_Origem'[totalusers]))
+VAR _ga4_trans = CALCULATE(SUM('GA4_Origem'[transactions]))
+
+// --- Totais ---
+VAR _inv_total = _meta_inv + _google_inv
+VAR _rec_total = _ga4_rec
+VAR _imp_total = _meta_imp + _google_imp
+VAR _clk_total = _meta_clk + _google_clk
+VAR _ctr  = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
+VAR _roas = IF(_inv_total > 0, DIVIDE(_rec_total, _inv_total), 0)
+VAR _cpa  = IF(_ga4_trans > 0, DIVIDE(_inv_total, _ga4_trans), 0)
+
+// --- Top 10 Campanhas (Meta + Google combinados) ---
+VAR _meta_camp =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('fb_campanhas', 'fb_campanhas'[campaign_name]),
+            "inv", CALCULATE(SUM('fb_campanhas'[spend])),
+            "imp", CALCULATE(SUM('fb_campanhas'[impressions])),
+            "clk", CALCULATE(SUM('fb_campanhas'[inline_link_clicks]))
+        ), [inv], DESC),
+        "nome", 'fb_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _google_camp =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('google_ads_campanhas', 'google_ads_campanhas'[campaign_name]),
+            "inv", CALCULATE(SUM('google_ads_campanhas'[metrics_cost])),
+            "imp", CALCULATE(SUM('google_ads_campanhas'[metrics_impressions])),
+            "clk", CALCULATE(SUM('google_ads_campanhas'[metrics_clicks]))
+        ), [inv], DESC),
+        "nome", 'google_ads_campanhas'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
+
+VAR _all_camp = TOPN(10, UNION(_meta_camp, _google_camp), [inv], DESC)
+
+VAR _StringBase =
+    "EXPORT_MOM_EICO" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;investimento=" & _inv_total &
+    ";;investimento_anterior=0" &
+    ";;impressoes=" & _imp_total &
+    ";;impressoes_anterior=0" &
+    ";;cliques=" & _clk_total &
+    ";;cliques_anterior=0" &
+    ";;ctr=" & _ctr &
+    ";;ctr_anterior=0" &
+    ";;conversoes=" & _ga4_trans &
+    ";;conversoes_anterior=0" &
+    ";;cpa=" & _cpa &
+    ";;cpa_anterior=0" &
+    ";;receita=" & _rec_total &
+    ";;receita_anterior=0" &
+    ";;roas=" & _roas &
+    ";;roas_anterior=0" &
+
+    IF(_meta_inv > 0,
+        ";;meta_investimento=" & _meta_inv &
+        ";;meta_investimento_anterior=0" &
+        ";;meta_impressoes=" & _meta_imp &
+        ";;meta_impressoes_anterior=0" &
+        ";;meta_cliques=" & _meta_clk &
+        ";;meta_cliques_anterior=0" &
+        ";;meta_receita=" & _meta_rec &
+        ";;meta_receita_anterior=0", "") &
+
+    IF(_google_inv > 0,
+        ";;google_investimento=" & _google_inv &
+        ";;google_investimento_anterior=0" &
+        ";;google_impressoes=" & _google_imp &
+        ";;google_impressoes_anterior=0" &
+        ";;google_cliques=" & _google_clk &
+        ";;google_cliques_anterior=0" &
+        ";;google_receita=" & _google_rec &
+        ";;google_receita_anterior=0", "") &
+
+    ";;ga4_sessoes=" & _ga4_sess &
+    ";;ga4_sessoes_anterior=0" &
+    ";;ga4_usuarios=" & _ga4_users &
+    ";;ga4_usuarios_anterior=0" &
+    ";;ga4_transacoes=" & _ga4_trans &
+    ";;ga4_transacoes_anterior=0" &
+    ";;ga4_receita=" & _ga4_rec &
+    ";;ga4_receita_anterior=0" &
+
+    ";;campanhas_top10=" &
+    CONCATENATEX(
+        _all_camp,
+        "c:" & [nome] & "|i:" & [inv] & "|im:" & [imp] & "|cl:" & [clk] & "|co:0|re:0|ro:0|cp:0",
+        "||"
+    ) &
+    ";;END_EXPORT"
+
+RETURN _StringBase`,
+    creativeDax: `
+// --- Período (injetado pelo frontend) ---
+VAR _Inicio = "{{START_DATE_FORMATTED}}"
+VAR _Fim = "{{END_DATE_FORMATTED}}"
+
+// --- M-1 (período anterior injetado pelo frontend) ---
+VAR _PrevStart = {{PREV_START_DATE}}
+VAR _PrevEnd = {{PREV_END_DATE}}
+
+VAR _AdList = DISTINCT(SELECTCOLUMNS('fb_ads', "ad_id", 'fb_ads'[ad_id], "ad_name", 'fb_ads'[ad_name]))
+
+VAR _CreativeTable =
+    FILTER(
+        GENERATE(
+            _AdList,
+            VAR _CurrentAdId = [ad_id]
+            RETURN
+                CALCULATETABLE(
+                    ROW(
+                        "Invest",    SUM('fb_ads'[spend]),
+                        "InvestAnt", CALCULATE(SUM('fb_ads'[spend]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Impres",    SUM('fb_ads'[impressions]),
+                        "ImpresAnt", CALCULATE(SUM('fb_ads'[impressions]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "Clicks",    SUM('fb_ads'[inline_link_clicks]),
+                        "ClicksAnt", CALCULATE(SUM('fb_ads'[inline_link_clicks]), FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd)),
+                        "DifCriativo", DATEDIFF(MIN('fb_ads'[metric_date]), MAX('fb_ads'[metric_date]), DAY) + 1,
+                        "thumbnail_url", LOOKUPVALUE('fb_ad'[creative_thumbnail_url], 'fb_ad'[ad_id], _CurrentAdId)
+                    ),
+                    'fb_ads'[ad_id] = _CurrentAdId
+                )
+        ),
+        [Invest] > 0 && NOT(ISBLANK([thumbnail_url]))
+    )
+
+VAR _FinalString =
+    "EXPORT_CREATIVOS_FULL_MOM" &
+    ";;plataforma=Meta Ads" &
+    ";;periodo_inicio=" & _Inicio &
+    ";;periodo_fim=" & _Fim &
+    ";;detalhamento_criativos=" &
+    CONCATENATEX(
+        TOPN(30, _CreativeTable, [Invest], DESC),
+        "n:" & [ad_name] &
+        " | i:" & [Invest] &
+        " | i_ant:" & [InvestAnt] &
+        " | im:" & [Impres] &
+        " | im_ant:" & [ImpresAnt] &
+        " | cl:" & [Clicks] &
+        " | cl_ant:" & [ClicksAnt] &
+        " | co:0 | re:0" &
+        " | dif_criativo:" & [DifCriativo] &
+        " | url:" & [thumbnail_url],
+        "||"
+    ) &
+    ";;END_EXPORT"
+RETURN _FinalString`
+  },
+
   {
     id: 'serasa_pme',
     name: 'Serasa PME',
