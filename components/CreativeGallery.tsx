@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { DashboardData, Creative } from '../types';
 import { analyzeSingleCreative } from '../services/gemini';
 import { formatCurrency, formatNumber } from '../utils/parser';
+import { addTokens, formatTokenCount } from '../utils/tokenStorage';
 
 interface Props {
   data: DashboardData;
@@ -15,6 +16,7 @@ interface Props {
   printMode?: boolean;
   /** Quando true, força TODOS os diagnósticos expandidos (usado no export PDF expandido) */
   forceExpandAll?: boolean;
+  clientId?: string;
 }
 
 const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isValid: boolean) => void }> = ({ url, name, onValidated }) => {
@@ -58,15 +60,16 @@ const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isVali
 };
 
 /** Máximo de criativos analisados automaticamente (controle de consumo de tokens) */
-const MAX_AI_CREATIVES = 15;
+const MAX_AI_CREATIVES = 10;
 
-const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false, forceExpandAll = false }) => {
+const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false, forceExpandAll = false, clientId }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
   const [invalidIndices, setInvalidIndices] = useState<Set<number>>(new Set());
   const [validationDone, setValidationDone] = useState(false);
   const [autoQueuedIndices, setAutoQueuedIndices] = useState<Set<number>>(new Set());
+  const [sessionTokens, setSessionTokens] = useState(0);
 
   const validateImages = async () => {
     const valid = new Set<number>();
@@ -150,7 +153,10 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
           ...prev,
           [i]: { text: result.text, hasError: !!result.error }
         }));
-        
+        if (result.tokensUsed) {
+          addTokens(clientId || '', result.tokensUsed);
+          setSessionTokens(prev => prev + (result.tokensUsed || 0));
+        }
         accumulatedInsights += result.text + "\n\n";
         setInsights(accumulatedInsights, result.model);
       } catch (err) {
@@ -168,6 +174,10 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
             ...prev,
             [i]: { text: result.text, hasError: !!result.error }
           }));
+          if (result.tokensUsed) {
+            addTokens(clientId || '', result.tokensUsed);
+            setSessionTokens(prev => prev + (result.tokensUsed || 0));
+          }
           accumulatedInsights += result.text + "\n\n";
           setInsights(accumulatedInsights, result.model);
         } catch (err) {
@@ -197,6 +207,10 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
     try {
       const result = await analyzeSingleCreative(data.creatives![idx], idx + 1);
       setAnalyzedItems(prev => ({ ...prev, [idx]: { text: result.text, hasError: !!result.error } }));
+      if (result.tokensUsed) {
+        addTokens(clientId || '', result.tokensUsed);
+        setSessionTokens(prev => prev + (result.tokensUsed || 0));
+      }
     } catch {
       setAnalyzedItems(prev => ({ ...prev, [idx]: { text: '**Erro de Processamento**\nNão foi possível analisar este criativo.', hasError: true } }));
     }
@@ -266,15 +280,26 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         </div>
       </div>
 
-      {data.creatives.length > MAX_AI_CREATIVES && (
-        <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-3xl px-8 py-5">
-          <i className="fa-solid fa-triangle-exclamation text-amber-500 text-lg flex-shrink-0"></i>
-          <div>
-            <p className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Análise automática: top {MAX_AI_CREATIVES} de {data.creatives.length} criativos</p>
-            <p className="text-[10px] text-amber-600/70 dark:text-amber-500/60 font-bold mt-0.5">Os demais {data.creatives.length - MAX_AI_CREATIVES} podem ser analisados individualmente sob demanda.</p>
+      <div className="flex flex-wrap items-center gap-4">
+        {data.creatives.length > MAX_AI_CREATIVES && (
+          <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-3xl px-8 py-5 flex-1">
+            <i className="fa-solid fa-triangle-exclamation text-amber-500 text-lg flex-shrink-0"></i>
+            <div>
+              <p className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Análise automática: top {MAX_AI_CREATIVES} de {data.creatives.length} criativos</p>
+              <p className="text-[10px] text-amber-600/70 dark:text-amber-500/60 font-bold mt-0.5">Os demais {data.creatives.length - MAX_AI_CREATIVES} podem ser analisados individualmente sob demanda.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        {sessionTokens > 0 && (
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-wigoo-dark/50 border border-gray-100 dark:border-white/5 rounded-3xl px-6 py-4">
+            <i className="fa-solid fa-microchip text-wigoo-primary/50 text-sm"></i>
+            <div>
+              <p className="text-[9px] font-black text-gray-400 dark:text-white/30 uppercase tracking-widest">Tokens nesta sessão</p>
+              <p className="text-[13px] font-black text-wigoo-primary dark:text-wigoo-accent">{formatTokenCount(sessionTokens)}</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {

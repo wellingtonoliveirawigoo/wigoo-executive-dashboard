@@ -9,6 +9,8 @@ export interface ClientConfig {
   creativeDax: string;
   /** Quando true, ignora Power BI e mostra apenas upload de imagens para análise visual */
   creativesOnly?: boolean;
+  /** Dataset BigQuery (ex: 'CasaDaToalha'). Se definido, tenta BQ primeiro com PBI como fallback. */
+  bqDataset?: string;
 }
 
 export const CLIENTS: ClientConfig[] = [
@@ -429,6 +431,7 @@ RETURN _FinalString`
     id: 'casadatoalha',
     name: 'Casa da Toalha',
     slug: 'casa-da-toalha',
+    bqDataset: 'CasaDaToalha',
     datasetId: 'cf6dded6-68aa-46c6-9e2b-295eade30979',
     measuresTable: 'Medidas',
     performanceDax: `
