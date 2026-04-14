@@ -57,12 +57,16 @@ const CreativeImage: React.FC<{ url: string; name: string; onValidated?: (isVali
   );
 };
 
+/** Máximo de criativos analisados automaticamente (controle de consumo de tokens) */
+const MAX_AI_CREATIVES = 15;
+
 const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoading, setIsLoading, analyzedItems, setAnalyzedItems, printMode = false, forceExpandAll = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [processingIndex, setProcessingIndex] = useState<number>(-1);
   const [validIndices, setValidIndices] = useState<Set<number>>(new Set());
   const [invalidIndices, setInvalidIndices] = useState<Set<number>>(new Set());
   const [validationDone, setValidationDone] = useState(false);
+  const [autoQueuedIndices, setAutoQueuedIndices] = useState<Set<number>>(new Set());
 
   const validateImages = async () => {
     const valid = new Set<number>();
@@ -101,7 +105,7 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
             resolved = true;
             resolve();
           }
-        }, 3500);
+        }, 2000);
       });
     };
 
@@ -123,9 +127,11 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
     // Pequeno delay para garantir que o estado de loading foi processado pela UI
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Processa apenas criativos com imagens válidas (exclui brancos/quebrados)
-    const indicesToProcess = data.creatives.map((_, i) => i).filter(i => !skipIndices.has(i));
-    
+    // Processa apenas criativos com imagens válidas, limitado ao top MAX_AI_CREATIVES por investimento
+    const allValid = data.creatives.map((_, i) => i).filter(i => !skipIndices.has(i));
+    const indicesToProcess = allValid.slice(0, MAX_AI_CREATIVES);
+    setAutoQueuedIndices(new Set(indicesToProcess));
+
     let accumulatedInsights = "";
     const failedIndices: number[] = [];
 
@@ -184,6 +190,18 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
       validateImages().then(invalid => fetchInsightsSequential(invalid));
     }
   }, [data]);
+
+  const analyzeOnDemand = async (idx: number) => {
+    if (processingIndex !== -1) return; // já tem análise em andamento
+    setProcessingIndex(idx);
+    try {
+      const result = await analyzeSingleCreative(data.creatives![idx], idx + 1);
+      setAnalyzedItems(prev => ({ ...prev, [idx]: { text: result.text, hasError: !!result.error } }));
+    } catch {
+      setAnalyzedItems(prev => ({ ...prev, [idx]: { text: '**Erro de Processamento**\nNão foi possível analisar este criativo.', hasError: true } }));
+    }
+    setProcessingIndex(-1);
+  };
 
   const parseAnalysisText = (raw: string | undefined, id: number) => {
     if (!raw) return null;
@@ -248,12 +266,24 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
         </div>
       </div>
 
+      {data.creatives.length > MAX_AI_CREATIVES && (
+        <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-3xl px-8 py-5">
+          <i className="fa-solid fa-triangle-exclamation text-amber-500 text-lg flex-shrink-0"></i>
+          <div>
+            <p className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Análise automática: top {MAX_AI_CREATIVES} de {data.creatives.length} criativos</p>
+            <p className="text-[10px] text-amber-600/70 dark:text-amber-500/60 font-bold mt-0.5">Os demais {data.creatives.length - MAX_AI_CREATIVES} podem ser analisados individualmente sob demanda.</p>
+          </div>
+        </div>
+      )}
+
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10 w-full print-creative-grid`}>
         {data.creatives.map((creative, idx) => {
           const itemData = analyzedItems[idx];
           const parsed = parseAnalysisText(itemData?.text, idx + 1);
           const isProcessing = processingIndex === idx;
-          const isPending = !itemData && !isProcessing;
+          const isQueued = autoQueuedIndices.has(idx);
+          const isPending = !itemData && !isProcessing && isQueued;
+          const isManual = !itemData && !isProcessing && !isQueued;
           const isExpanded = expandedId === idx || forceExpandAll;
           const currentCTR = (creative.clicks.current / (creative.impressions.current || 1) * 100);
           const formattedCTR = currentCTR.toFixed(2).replace('.', ',') + '%';
@@ -277,8 +307,19 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                 {isPending && (
                   <div className="absolute inset-0 bg-black/5 flex items-center justify-center z-10">
                     <div className="bg-white/40 dark:bg-black/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/20 shadow-sm">
-                       <p className="text-[10px] font-black text-gray-800 dark:text-white uppercase tracking-[0.2em]">Aguardando Análise AI</p>
+                       <p className="text-[10px] font-black text-gray-800 dark:text-white uppercase tracking-[0.2em]">Aguardando Análise IA</p>
                     </div>
+                  </div>
+                )}
+                {isManual && (
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
+                    <button
+                      onClick={() => analyzeOnDemand(idx)}
+                      disabled={processingIndex !== -1}
+                      className="bg-wigoo-primary text-white px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg hover:bg-wigoo-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles"></i> Analisar
+                    </button>
                   </div>
                 )}
 
@@ -420,6 +461,17 @@ const CreativeGallery: React.FC<Props> = ({ data, insights, setInsights, isLoadi
                         <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
                       </button>
                     )}
+                  </div>
+                ) : isManual ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Análise não incluída no lote automático</p>
+                    <button
+                      onClick={() => analyzeOnDemand(idx)}
+                      disabled={processingIndex !== -1}
+                      className="px-6 py-3 bg-wigoo-primary text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-wigoo-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles"></i> Analisar este criativo
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-3 animate-pulse py-6">

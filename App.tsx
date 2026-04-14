@@ -31,7 +31,7 @@ const App: React.FC = () => {
   const [userQuery, setUserQuery] = useState('');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [inputMethod, setInputMethod] = useState<'paste' | 'live'>('paste');
+  const [inputMethod, setInputMethod] = useState<'paste' | 'live'>('live');
   const [customPrompt, setCustomPrompt] = useState<string | null>(localStorage.getItem('wigoo_custom_prompt'));
   
   // Estado SEPARADO para cada modo — resolve o problema de cache e mistura de insights
@@ -166,13 +166,13 @@ const App: React.FC = () => {
                   onClick={() => setInputMethod('paste')}
                   className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
-                  Export Manual (Copiar/Colar)
+                  Export Manual
                  </button>
                  <button
                   onClick={() => setInputMethod('live')}
                   className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'live' ? 'bg-white dark:bg-wigoo-gray text-wigoo-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
-                  <i className="fa-solid fa-bolt mr-2 text-amber-500"></i> Conexão Live (API)
+                  <i className="fa-solid fa-bolt mr-2 text-amber-500"></i> Conexão Live
                  </button>
               </div>
 
