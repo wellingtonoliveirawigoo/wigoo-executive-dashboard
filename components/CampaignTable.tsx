@@ -150,4 +150,4 @@ const CampaignTable: React.FC<{ campaigns: Campaign[] }> = ({ campaigns }) => {
   );
 };
 
-export default CampaignTable;
+export default React.memo(CampaignTable);

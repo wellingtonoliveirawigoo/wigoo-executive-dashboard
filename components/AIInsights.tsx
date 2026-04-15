@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { generateInsights, getFallbackAnalysis } from '../services/gemini';
 import { DashboardData } from '../types';
 import { formatTokenCount } from '../utils/tokenStorage';
@@ -184,7 +184,7 @@ const AIInsights: React.FC<AIInsightsProps> = ({
       });
   };
 
-  const sections = parseInsightsText(insights);
+  const sections = useMemo(() => parseInsightsText(insights), [insights]);
   const hasNarrative = !!(sections.estratégico || sections.diretriz || userQuery);
 
   if (isLoading) {

@@ -5,151 +5,119 @@ export const ceaClient: ClientConfig = {
   name: 'C&A',
   slug: 'cea',
   datasetId: '4269623c-ac5a-480f-82a9-c887fbbd781d',
+  workspaceId: '40937ccd-cffb-4f55-9029-e96472719963',
   measuresTable: '_Medidas',
+  // Tabela e coluna de data do modelo C&A (diferente do padrão 'dCalendario.Date')
+  calendarTable: 'd_calendario.data',
   performanceDax: `
-// --- Período (injetado pelo frontend) ---
+// DAX C&A — tabelas: f_performance_midia, f_ga4_performance, v_d_campanha, d_calendario
+// O filtro de datas é aplicado externamente via d_calendario[data] pelo powerbi.ts
 VAR _Inicio = "{{START_DATE_FORMATTED}}"
-VAR _Fim = "{{END_DATE_FORMATTED}}"
+VAR _Fim    = "{{END_DATE_FORMATTED}}"
 
-// --- M-1 (período anterior injetado pelo frontend) ---
-VAR _PrevStart = {{PREV_START_DATE}}
-VAR _PrevEnd = {{PREV_END_DATE}}
+// ── Mídia (f_performance_midia) ───────────────────────────────────────────────
+VAR _meta_inv   = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Meta Ads")
+VAR _meta_imp   = CALCULATE(SUM('f_performance_midia'[impressoes]),'f_performance_midia'[canal] = "Meta Ads")
+VAR _meta_clk   = CALCULATE(SUM('f_performance_midia'[cliques]),   'f_performance_midia'[canal] = "Meta Ads")
+VAR _meta_conv  = CALCULATE(SUM('f_performance_midia'[conversoes]),'f_performance_midia'[canal] = "Meta Ads")
+VAR _meta_rec   = CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Meta Ads")
 
-// --- Métricas M-1 Globais ---
-VAR _inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _imp_ant = CALCULATE([ImpressõesGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _clk_ant = CALCULATE([CliquesGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _conv_ant = CALCULATE([ConversõesGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _cpa_ant = CALCULATE([CPCGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _roas_ant = IF(_inv_ant > 0, _rec_ant / _inv_ant, 0)
-VAR _ctr_ant = CALCULATE([CTRGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
+VAR _google_inv = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Google Ads")
+VAR _google_imp = CALCULATE(SUM('f_performance_midia'[impressoes]),'f_performance_midia'[canal] = "Google Ads")
+VAR _google_clk = CALCULATE(SUM('f_performance_midia'[cliques]),   'f_performance_midia'[canal] = "Google Ads")
+VAR _google_rec = CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Google Ads")
 
-// --- Métricas por Canal (período atual) ---
-VAR _meta_inv = CALCULATE([InvestimentoGeral], 'dCanal'[Canal] IN {"Meta Ads", "Facebook Ads", "Instagram"})
-VAR _meta_rec = CALCULATE([ReceitaGA], 'dCanal'[Canal] IN {"Meta Ads", "Facebook Ads", "Instagram"})
+VAR _tiktok_inv = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "TikTok Ads")
+VAR _tiktok_imp = CALCULATE(SUM('f_performance_midia'[impressoes]),'f_performance_midia'[canal] = "TikTok Ads")
+VAR _tiktok_clk = CALCULATE(SUM('f_performance_midia'[cliques]),   'f_performance_midia'[canal] = "TikTok Ads")
 
-VAR _google_inv = CALCULATE([InvestimentoGeral], 'dCanal'[Canal] = "Google Ads")
-VAR _google_rec = CALCULATE([ReceitaGA], 'dCanal'[Canal] = "Google Ads")
+VAR _awin_inv   = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Awin")
+VAR _awin_rec   = CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Awin")
 
-VAR _tiktok_inv = CALCULATE([InvestimentoGeral], 'dCanal'[Canal] = "TikTok Ads")
-VAR _tiktok_rec = CALCULATE([ReceitaGA], 'dCanal'[Canal] = "TikTok Ads")
+VAR _criteo_inv = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Criteo")
+VAR _criteo_rec = CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Criteo")
 
-VAR _awin_inv = CALCULATE([InvestimentoGeral], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Awin")))
-VAR _awin_rec = CALCULATE([ReceitaGA], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Awin")))
+VAR _rtb_inv    = CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "RTB")
+VAR _rtb_rec    = CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "RTB")
 
-VAR _criteo_inv = CALCULATE([InvestimentoGeral], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Criteo")))
-VAR _criteo_rec = CALCULATE([ReceitaGA], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Criteo")))
+// ── GA4 (f_ga4_performance) ───────────────────────────────────────────────────
+VAR _ga4_rec   = CALCULATE(SUM('f_ga4_performance'[receita_ga4]))
+VAR _ga4_sess  = CALCULATE(SUM('f_ga4_performance'[sessoes]))
+VAR _ga4_users = CALCULATE(SUM('f_ga4_performance'[usuarios]))
+VAR _ga4_trans = CALCULATE(SUM('f_ga4_performance'[transacoes_ga4]))
 
-VAR _rtb_inv = CALCULATE([InvestimentoGeral], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "RTB")))
-VAR _rtb_rec = CALCULATE([ReceitaGA], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "RTB")))
+// ── Totais ────────────────────────────────────────────────────────────────────
+VAR _inv_total = CALCULATE(SUM('f_performance_midia'[custo]))
+VAR _imp_total = _meta_imp + _google_imp + _tiktok_imp
+VAR _clk_total = _meta_clk + _google_clk + _tiktok_clk
+VAR _conv_total = _meta_conv
+VAR _rec_total = _ga4_rec
+VAR _ctr  = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
+VAR _roas = IF(_inv_total > 0, DIVIDE(_rec_total, _inv_total), 0)
+VAR _cpa  = IF(_conv_total > 0, DIVIDE(_inv_total, _conv_total), 0)
 
-VAR _pinterest_inv = CALCULATE([InvestimentoGeral], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Pinterest")))
-VAR _pinterest_rec = CALCULATE([ReceitaGA], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Pinterest")))
+// ── Top 10 Campanhas ──────────────────────────────────────────────────────────
+VAR _camp_meta =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('f_performance_midia', 'f_performance_midia'[nome_campanha]),
+            "inv", CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Meta Ads"),
+            "imp", CALCULATE(SUM('f_performance_midia'[impressoes]),'f_performance_midia'[canal] = "Meta Ads"),
+            "clk", CALCULATE(SUM('f_performance_midia'[cliques]),   'f_performance_midia'[canal] = "Meta Ads"),
+            "rec", CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Meta Ads")
+        ), [inv], DESC),
+        "nome", 'f_performance_midia'[nome_campanha], "inv", [inv], "imp", [imp], "clk", [clk], "rec", [rec])
 
-VAR _meliuz_inv = CALCULATE([InvestimentoGeral], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Meliuz")))
-VAR _meliuz_rec = CALCULATE([ReceitaGA], KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Meliuz")))
+VAR _camp_google =
+    SELECTCOLUMNS(
+        TOPN(5, ADDCOLUMNS(
+            SUMMARIZE('f_performance_midia', 'f_performance_midia'[nome_campanha]),
+            "inv", CALCULATE(SUM('f_performance_midia'[custo]),     'f_performance_midia'[canal] = "Google Ads"),
+            "imp", CALCULATE(SUM('f_performance_midia'[impressoes]),'f_performance_midia'[canal] = "Google Ads"),
+            "clk", CALCULATE(SUM('f_performance_midia'[cliques]),   'f_performance_midia'[canal] = "Google Ads"),
+            "rec", CALCULATE(SUM('f_ga4_performance'[receita_ga4]), 'f_ga4_performance'[canal]   = "Google Ads")
+        ), [inv], DESC),
+        "nome", 'f_performance_midia'[nome_campanha], "inv", [inv], "imp", [imp], "clk", [clk], "rec", [rec])
 
-// --- Métricas por Canal M-1 ---
-VAR _meta_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] IN {"Meta Ads", "Facebook Ads", "Instagram"})
-VAR _meta_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] IN {"Meta Ads", "Facebook Ads", "Instagram"})
+VAR _all_camp = TOPN(10, UNION(_camp_meta, _camp_google), [inv], DESC)
 
-VAR _google_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] = "Google Ads")
-VAR _google_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] = "Google Ads")
-
-VAR _tiktok_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] = "TikTok Ads")
-VAR _tiktok_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), 'dCanal'[Canal] = "TikTok Ads")
-
-VAR _awin_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Awin")))
-VAR _awin_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Awin")))
-
-VAR _criteo_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Criteo")))
-VAR _criteo_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Criteo")))
-
-VAR _rtb_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "RTB")))
-VAR _rtb_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "RTB")))
-
-VAR _pinterest_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Pinterest")))
-VAR _pinterest_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Pinterest")))
-
-VAR _meliuz_inv_ant = CALCULATE([InvestimentoGeral], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Meliuz")))
-VAR _meliuz_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd), KEEPFILTERS(CONTAINSSTRING('dCanal'[Canal], "Meliuz")))
-
-// --- GA4 M-1 ---
-VAR _ga4_sess_ant = CALCULATE([Sessões], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _ga4_users_ant = CALCULATE([Usuários], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _ga4_trans_ant = CALCULATE([Transações], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _ga4_rec_ant = CALCULATE([ReceitaGA], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _ga4_txconv_ant = CALCULATE([Tx. Conversão GA4], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-VAR _ga4_tkm_ant = CALCULATE([TKM], FILTER(ALL('dCalendario'), 'dCalendario'[Date] >= _PrevStart && 'dCalendario'[Date] <= _PrevEnd))
-
-// --- Construção da String ---
+// ── Export String ─────────────────────────────────────────────────────────────
 VAR _StringBase =
     "EXPORT_C&A" &
-    ";;periodo_inicio=" & _Inicio &
-    ";;periodo_fim=" & _Fim &
-    ";;investimento=" & [InvestimentoGeral] &
-    ";;investimento_anterior=" & _inv_ant &
-    ";;investimento_fonte=Ads" &
-    ";;impressoes=" & [ImpressõesGeral] &
-    ";;impressoes_anterior=" & _imp_ant &
-    ";;cliques=" & [CliquesGeral] &
-    ";;cliques_anterior=" & _clk_ant &
-    ";;ctr=" & [CTRGeral] &
-    ";;ctr_anterior=" & _ctr_ant &
-    ";;conversoes=" & [ConversõesGeral] &
-    ";;conversoes_anterior=" & _conv_ant &
-    ";;cpa=" & [CPCGeral] &
-    ";;cpa_anterior=" & _cpa_ant &
-    ";;receita=" & [ReceitaGA] &
-    ";;receita_anterior=" & _rec_ant &
-    ";;roas=" & [ROAS] &
-    ";;roas_anterior=" & _roas_ant &
-
-    // Canais (atual + M-1, só aparecem se houver investimento)
-    IF(_meta_inv > 0, ";;meta_investimento=" & _meta_inv & ";;meta_investimento_anterior=" & _meta_inv_ant & ";;meta_receita=" & _meta_rec & ";;meta_receita_anterior=" & _meta_rec_ant, "") &
-    IF(_google_inv > 0, ";;google_investimento=" & _google_inv & ";;google_investimento_anterior=" & _google_inv_ant & ";;google_receita=" & _google_rec & ";;google_receita_anterior=" & _google_rec_ant, "") &
-    IF(_tiktok_inv > 0, ";;tiktok_investimento=" & _tiktok_inv & ";;tiktok_investimento_anterior=" & _tiktok_inv_ant & ";;tiktok_receita=" & _tiktok_rec & ";;tiktok_receita_anterior=" & _tiktok_rec_ant, "") &
-    IF(_awin_inv > 0, ";;awin_investimento=" & _awin_inv & ";;awin_investimento_anterior=" & _awin_inv_ant & ";;awin_receita=" & _awin_rec & ";;awin_receita_anterior=" & _awin_rec_ant, "") &
-    IF(_criteo_inv > 0, ";;criteo_investimento=" & _criteo_inv & ";;criteo_investimento_anterior=" & _criteo_inv_ant & ";;criteo_receita=" & _criteo_rec & ";;criteo_receita_anterior=" & _criteo_rec_ant, "") &
-    IF(_rtb_inv > 0, ";;rtb_investimento=" & _rtb_inv & ";;rtb_investimento_anterior=" & _rtb_inv_ant & ";;rtb_receita=" & _rtb_rec & ";;rtb_receita_anterior=" & _rtb_rec_ant, "") &
-    IF(_pinterest_inv > 0, ";;pinterest_investimento=" & _pinterest_inv & ";;pinterest_investimento_anterior=" & _pinterest_inv_ant & ";;pinterest_receita=" & _pinterest_rec & ";;pinterest_receita_anterior=" & _pinterest_rec_ant, "") &
-    IF(_meliuz_inv > 0, ";;meliuz_investimento=" & _meliuz_inv & ";;meliuz_investimento_anterior=" & _meliuz_inv_ant & ";;meliuz_receita=" & _meliuz_rec & ";;meliuz_receita_anterior=" & _meliuz_rec_ant, "") &
-
-    // GA4 & Backend (atual + M-1)
-    ";;ga4_sessoes=" & [Sessões] &
-    ";;ga4_sessoes_anterior=" & _ga4_sess_ant &
-    ";;ga4_usuarios=" & [Usuários] &
-    ";;ga4_usuarios_anterior=" & _ga4_users_ant &
-    ";;ga4_transacoes=" & [Transações] &
-    ";;ga4_transacoes_anterior=" & _ga4_trans_ant &
-    ";;ga4_receita=" & [ReceitaGA] &
-    ";;ga4_receita_anterior=" & _ga4_rec_ant &
-    ";;ga4_tx_conversao=" & [Tx. Conversão GA4] &
-    ";;ga4_tx_conversao_anterior=" & _ga4_txconv_ant &
-    ";;ga4_ticket_medio=" & [TKM] &
-    ";;ga4_ticket_medio_anterior=" & _ga4_tkm_ant &
-    ";;vtex_receita=" & [ReceitaGA] &
-    ";;vtex_receita_anterior=" & _ga4_rec_ant &
-    ";;vtex_pedidos=" & [Transações] &
-    ";;vtex_pedidos_anterior=" & _ga4_trans_ant &
-    ";;vtex_ticket_medio=" & [TKM] &
-    ";;vtex_ticket_medio_anterior=" & _ga4_tkm_ant &
-
-    // Top 10 Campanhas
+    ";;periodo_inicio=" & _Inicio & ";;periodo_fim=" & _Fim &
+    ";;investimento=" & _inv_total & ";;investimento_anterior=0" &
+    ";;impressoes="   & _imp_total & ";;impressoes_anterior=0" &
+    ";;cliques="      & _clk_total & ";;cliques_anterior=0" &
+    ";;ctr="          & _ctr       & ";;ctr_anterior=0" &
+    ";;conversoes="   & _conv_total& ";;conversoes_anterior=0" &
+    ";;cpa="          & _cpa       & ";;cpa_anterior=0" &
+    ";;receita="      & _rec_total & ";;receita_anterior=0" &
+    ";;roas="         & _roas      & ";;roas_anterior=0" &
+    IF(_meta_inv > 0,
+        ";;meta_investimento=" & _meta_inv & ";;meta_investimento_anterior=0" &
+        ";;meta_receita="      & _meta_rec & ";;meta_receita_anterior=0", "") &
+    IF(_google_inv > 0,
+        ";;google_investimento=" & _google_inv & ";;google_investimento_anterior=0" &
+        ";;google_receita="      & _google_rec & ";;google_receita_anterior=0", "") &
+    IF(_tiktok_inv > 0,
+        ";;tiktok_investimento=" & _tiktok_inv & ";;tiktok_investimento_anterior=0", "") &
+    IF(_awin_inv > 0,
+        ";;awin_investimento=" & _awin_inv & ";;awin_investimento_anterior=0" &
+        ";;awin_receita="      & _awin_rec & ";;awin_receita_anterior=0", "") &
+    IF(_criteo_inv > 0,
+        ";;criteo_investimento=" & _criteo_inv & ";;criteo_investimento_anterior=0" &
+        ";;criteo_receita="      & _criteo_rec & ";;criteo_receita_anterior=0", "") &
+    IF(_rtb_inv > 0,
+        ";;rtb_investimento=" & _rtb_inv & ";;rtb_investimento_anterior=0" &
+        ";;rtb_receita="      & _rtb_rec & ";;rtb_receita_anterior=0", "") &
+    ";;ga4_sessoes="    & _ga4_sess  & ";;ga4_sessoes_anterior=0" &
+    ";;ga4_usuarios="   & _ga4_users & ";;ga4_usuarios_anterior=0" &
+    ";;ga4_transacoes=" & _ga4_trans & ";;ga4_transacoes_anterior=0" &
+    ";;ga4_receita="    & _ga4_rec   & ";;ga4_receita_anterior=0" &
     ";;campanhas_top10=" &
-        CONCATENATEX(
-            TOPN(10, ALLSELECTED('dCampanhas'), [InvestimentoGeral], DESC),
-            "c:" & 'dCampanhas'[campaign_name] &
-            "|i:" & [InvestimentoGeral] &
-            "|im:" & [ImpressõesGeral] &
-            "|cl:" & [CliquesGeral] &
-            "|co:" & [ConversõesGeral] &
-            "|re:" & [ReceitaGA] &
-            "|ro:" & [ROAS] &
-            "|cp:" & [CPCGeral],
-            "||"
-        ) &
+        CONCATENATEX(_all_camp,
+            "c:" & [nome] & "|i:" & [inv] & "|im:" & [imp] &
+            "|cl:" & [clk] & "|co:0|re:" & [rec] & "|ro:0|cp:0", "||") &
     ";;END_EXPORT"
 
 RETURN _StringBase`,

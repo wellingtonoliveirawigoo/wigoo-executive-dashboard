@@ -26,24 +26,25 @@ const TokenUsageBar: React.FC<Props> = ({ clientId }) => {
   // Re-sync when clientId changes
   useEffect(() => { refresh(); }, [clientId]);
 
-  if (used === 0) return null;
-
   const pct = Math.min((used / MONTHLY_TOKEN_LIMIT) * 100, 100);
   const now = new Date();
   const monthLabel = `${MONTH_LABELS[now.getMonth()]}/${String(now.getFullYear()).slice(2)}`;
 
   const barColor =
-    pct >= 90 ? '#ef4444'   // red-500
-    : pct >= 70 ? '#f59e0b' // amber-500
-    : '#10b981';             // emerald-500
+    used === 0 ? '#d1d5db'  // gray-300 — ainda sem uso
+    : pct >= 90 ? '#ef4444'
+    : pct >= 70 ? '#f59e0b'
+    : '#10b981';
 
   const textColor =
-    pct >= 90 ? 'text-red-500'
+    used === 0 ? 'text-gray-400 dark:text-white/30'
+    : pct >= 90 ? 'text-red-500'
     : pct >= 70 ? 'text-amber-500'
     : 'text-emerald-500';
 
   const statusLabel =
-    pct >= 90 ? 'Limite próximo'
+    used === 0 ? 'Aguardando uso'
+    : pct >= 90 ? 'Limite próximo'
     : pct >= 70 ? 'Uso elevado'
     : 'Uso normal';
 

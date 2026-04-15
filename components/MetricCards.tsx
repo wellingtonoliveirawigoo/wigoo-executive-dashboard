@@ -29,18 +29,38 @@ const VariationBadge: React.FC<{ metric: MetricYoY; inverse?: boolean; isCurrenc
   );
 };
 
+// Mapeamento seguro de colunas xl para Tailwind JIT
+const XL_GRID: Record<number, string> = {
+  1: 'xl:grid-cols-1',
+  2: 'xl:grid-cols-2',
+  3: 'xl:grid-cols-3',
+  4: 'xl:grid-cols-4',
+  5: 'xl:grid-cols-5',
+  6: 'xl:grid-cols-6',
+};
+
 const MetricCards: React.FC<{ data: DashboardData }> = ({ data }) => {
-  const metrics = [
-    { label: 'Investimento Total', metric: data.investment, icon: 'fa-money-bill-trend-up', color: 'text-wigoo-primary', isCurrency: true, inverse: true },
+  // 4.5 — Prioridade de receita: E-commerce (VTEX/Shopify/etc.) → GA4
+  // Usa a primeira plataforma de e-commerce com receita > 0 (ordem definida no parser)
+  const activeEcommerce = data.ecommercePlatforms?.find(p => p.revenue.current > 0);
+  const revenueMetric = activeEcommerce?.revenue ?? data.receita;
+  const revenueLabel  = activeEcommerce ? `Receita ${activeEcommerce.label}` : 'Receita (Consolidada)';
+
+  const allMetrics = [
+    { label: 'Investimento Total', metric: data.investment, icon: 'fa-money-bill-trend-up', color: 'text-wigoo-primary', isCurrency: true, inverse: true, alwaysShow: true },
     { label: 'Impressões', metric: data.impressions, icon: 'fa-eye', color: 'text-blue-500', isCurrency: false },
     { label: 'Cliques', metric: data.cliques, icon: 'fa-mouse-pointer', color: 'text-indigo-500', isCurrency: false },
     { label: 'Conversões', metric: data.conversions, icon: 'fa-cart-shopping', color: 'text-emerald-500', isCurrency: false },
-    { label: 'Receita (Consolidada)', metric: data.receita, icon: 'fa-hand-holding-dollar', color: 'text-amber-500', isCurrency: true },
+    { label: revenueLabel, metric: revenueMetric, icon: 'fa-hand-holding-dollar', color: 'text-amber-500', isCurrency: true },
     { label: 'ROAS Geral', metric: data.roas, icon: 'fa-chart-line', color: 'text-rose-500', isCurrency: false, isRaw: true },
   ];
 
+  // 4.1 — Ocultar cards onde current E previous são ambos 0
+  const metrics = allMetrics.filter(m => m.alwaysShow || m.metric.current !== 0 || m.metric.previous !== 0);
+  const xlClass = XL_GRID[Math.min(metrics.length, 6)] || 'xl:grid-cols-6';
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 print:grid-cols-2 gap-4 w-full metric-grid">
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${xlClass} print:grid-cols-2 gap-4 w-full metric-grid`}>
       {metrics.map((m, idx) => {
         const valText = m.isCurrency ? formatCurrency(m.metric.current) : (m.isRaw ? m.metric.current.toFixed(2) : formatNumber(m.metric.current));
         const fontSize = getDynamicFontSize(valText, 'text-xl');
@@ -75,4 +95,4 @@ const MetricCards: React.FC<{ data: DashboardData }> = ({ data }) => {
   );
 };
 
-export default MetricCards;
+export default React.memo(MetricCards);

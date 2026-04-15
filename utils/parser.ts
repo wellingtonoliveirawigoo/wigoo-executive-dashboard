@@ -267,23 +267,42 @@ export const parsePbiExport = (input: string): DashboardData | null => {
     };
   }
   
-  if (kv['vtex_receita'] || kv['vtex_pedidos']) {
-    const revenue = parseYoYMetric(kv['vtex_receita'], kv['vtex_receita_anterior']);
-    const orders = parseYoYMetric(kv['vtex_pedidos'], kv['vtex_pedidos_anterior']);
-    
-    // Calculate Avg Ticket if missing
-    let avgTicket = parseYoYMetric(kv['vtex_ticket_medio'], kv['vtex_ticket_medio_anterior']);
+  // ── E-commerce platforms (detecção genérica por ordem de prioridade) ─────────
+  // Adicionar novas plataformas aqui — o parser detecta automaticamente
+  // se o export string contiver os campos {prefix}_receita ou {prefix}_pedidos
+  const ECOMMERCE_PLATFORMS = [
+    { key: 'vtex',        label: 'VTEX' },
+    { key: 'shopify',     label: 'Shopify' },
+    { key: 'magento',     label: 'Magento' },
+    { key: 'tray',        label: 'Tray' },
+    { key: 'nuvemshop',   label: 'Nuvemshop' },
+    { key: 'woocommerce', label: 'WooCommerce' },
+    { key: 'loja',        label: 'Loja Virtual' },
+  ];
+
+  result.ecommercePlatforms = [];
+
+  for (const platform of ECOMMERCE_PLATFORMS) {
+    const revenueKey = `${platform.key}_receita`;
+    const ordersKey  = `${platform.key}_pedidos`;
+    if (!kv[revenueKey] && !kv[ordersKey]) continue;
+
+    const revenue = parseYoYMetric(kv[revenueKey], kv[`${revenueKey}_anterior`]);
+    const orders  = parseYoYMetric(kv[ordersKey],  kv[`${ordersKey}_anterior`]);
+
+    let avgTicket = parseYoYMetric(kv[`${platform.key}_ticket_medio`], kv[`${platform.key}_ticket_medio_anterior`]);
     if (avgTicket.current === 0 && orders.current > 0) {
-      avgTicket.current = revenue.current / orders.current;
+      avgTicket.current  = revenue.current / orders.current;
       avgTicket.previous = orders.previous > 0 ? revenue.previous / orders.previous : 0;
       avgTicket.variation = calculateVariation(avgTicket.current, avgTicket.previous);
     }
 
-    result.vtex = {
-      revenue,
-      orders,
-      avgTicket,
-    };
+    result.ecommercePlatforms.push({ name: platform.key, label: platform.label, revenue, orders, avgTicket });
+
+    // Mantém compatibilidade com campo vtex legado
+    if (platform.key === 'vtex') {
+      result.vtex = { revenue, orders, avgTicket };
+    }
   }
 
   // Restaura campanhas_top10
