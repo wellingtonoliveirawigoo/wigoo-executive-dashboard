@@ -25,11 +25,28 @@ async function getGoogleToken(sa: Record<string, string>): Promise<string> {
     })
   });
 
-  const data = (await tokenResp.json()) as { access_token: string };
+  if (!tokenResp.ok) {
+    const err = await tokenResp.text().catch(() => '');
+    throw new Error(`OAuth token error ${tokenResp.status}: ${err}`);
+  }
+  const data = (await tokenResp.json()) as { access_token?: string };
+  if (!data.access_token) throw new Error('OAuth response missing access_token');
   return data.access_token;
 }
 
+const ALLOWED_ORIGINS = [
+  'https://wigoo-executive-dashboard.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
 export default async function handler(req: any, res: any) {
+  // Bloqueia origens não autorizadas (previne abuso da quota BigQuery)
+  const origin = (req.headers['origin'] as string) || '';
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

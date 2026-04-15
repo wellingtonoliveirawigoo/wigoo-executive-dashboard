@@ -7,6 +7,14 @@ export const executePowerBiQuery = async (
   endDate: string, 
   mode: 'performance' | 'creative'
 ) => {
+  const DATE_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) {
+    throw new Error('Datas inválidas. Formato esperado: YYYY-MM-DD');
+  }
+  if (startDate > endDate) {
+    throw new Error('Data de início não pode ser posterior à data de fim');
+  }
+
   const start = startDate.split('-').map(Number);
   const end = endDate.split('-').map(Number);
 
