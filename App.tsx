@@ -145,12 +145,32 @@ const App: React.FC = () => {
                 >
                   <i className="fa-solid fa-chart-line mr-2"></i> Performance
                 </button>
-                <button
-                  onClick={() => setViewMode('creative')}
-                  className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${viewMode === 'creative' ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30' : 'text-gray-500 hover:text-wigoo-primary'}`}
-                >
-                  <i className="fa-solid fa-wand-magic-sparkles mr-2"></i> Analisar Criativo
-                </button>
+                {/* Botão Analisar Criativo — desativado quando creativeDax não configurado */}
+                {(() => {
+                  const hasCreativeSupport = !!lockedClient?.creativeDax;
+                  return (
+                    <button
+                      onClick={() => hasCreativeSupport ? setViewMode('creative') : undefined}
+                      disabled={!hasCreativeSupport}
+                      title={!hasCreativeSupport ? 'Função será ativada em breve' : undefined}
+                      className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+                        viewMode === 'creative' && hasCreativeSupport
+                          ? 'bg-wigoo-primary text-white shadow-2xl shadow-wigoo-primary/30'
+                          : hasCreativeSupport
+                            ? 'text-gray-500 hover:text-wigoo-primary'
+                            : 'text-gray-300 dark:text-wigoo-light/20 cursor-not-allowed'
+                      }`}
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                      Analisar Criativo
+                      {!hasCreativeSupport && (
+                        <span className="ml-2 text-[8px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                          Em breve
+                        </span>
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           )}

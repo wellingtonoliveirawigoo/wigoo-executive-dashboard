@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(gh pr create --title 'feat\\(clients\\): adicionar Casa da Toalha, Dabelle e Eico' --body ':*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(grep -E \"^api$\")",
+      "mcp__2145b1d6-885b-4796-a1d2-72b6fec895bb__find_dataset"
+    ]
+  }
+}

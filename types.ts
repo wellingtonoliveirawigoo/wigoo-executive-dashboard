@@ -78,7 +78,18 @@ export interface DashboardData {
     orders: MetricYoY;
     avgTicket: MetricYoY;
   };
-  
+
+  /** Lista de plataformas de e-commerce detectadas (VTEX, Shopify, Magento, etc.)
+   *  Populada automaticamente pelo parser com base nos campos do export string.
+   *  Usada no MetricCards para exibir "Receita VTEX", "Receita Shopify", etc. */
+  ecommercePlatforms?: Array<{
+    name: string;       // chave interna: 'vtex', 'shopify', etc.
+    label: string;      // exibição: 'VTEX', 'Shopify', etc.
+    revenue: MetricYoY;
+    orders: MetricYoY;
+    avgTicket: MetricYoY;
+  }>;
+
   campaigns: Campaign[];
   creatives?: Creative[];
   exportType?: 'PERFORMANCE' | 'CREATIVE';

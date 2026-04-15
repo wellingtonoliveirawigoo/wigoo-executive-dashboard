@@ -18,7 +18,7 @@ interface Props {
 }
 
 const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLoading, viewMode, lockedClient, selectedClientId, onClientSelect }) => {
-  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 5)).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleSync = async () => {
@@ -29,19 +29,18 @@ const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLo
     try {
       let exportString: string | null = null;
 
-      // Tenta BigQuery primeiro (se cliente tem bqDataset configurado)
-      if (client.bqDataset) {
-        try {
-          exportString = await executeBigQueryQuery(client.id, startDate, endDate, viewMode);
-          console.log('BigQuery sync success');
-        } catch (bqErr) {
-          console.warn('BigQuery falhou, usando Power BI como fallback:', bqErr);
-        }
+      // 1° — Power BI (fonte principal)
+      try {
+        exportString = await executePowerBiQuery(client, startDate, endDate, viewMode);
+        console.log('Power BI sync success');
+      } catch (pbiErr) {
+        console.warn('Power BI falhou, tentando BigQuery como fallback:', pbiErr);
       }
 
-      // Fallback para Power BI
-      if (!exportString) {
-        exportString = await executePowerBiQuery(client, startDate, endDate, viewMode);
+      // 2° — BigQuery como fallback (se cliente tem bqDataset configurado)
+      if (!exportString && client.bqDataset) {
+        exportString = await executeBigQueryQuery(client.id, startDate, endDate, viewMode);
+        console.log('BigQuery sync success');
       }
 
       if (!exportString) {
@@ -76,7 +75,7 @@ const LiveConnectionPanel: React.FC<Props> = ({ onDataLoaded, isLoading, setIsLo
             </div>
             <div>
               <h3 className="text-lg font-black text-gray-900 dark:text-white leading-tight">Conexão Live</h3>
-              <p className="text-[10px] text-gray-400 dark:text-wigoo-light/30 uppercase tracking-widest mt-0.5">BigQuery + Power BI • Sincronização em Tempo Real</p>
+              <p className="text-[10px] text-gray-400 dark:text-wigoo-light/30 uppercase tracking-widest mt-0.5">Power BI + BigQuery • Sincronização em Tempo Real</p>
             </div>
           </div>
 

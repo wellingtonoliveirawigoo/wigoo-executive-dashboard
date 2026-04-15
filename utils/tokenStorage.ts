@@ -1,6 +1,6 @@
 const KEY_PREFIX = 'wigoo_tokens_';
 
-export const MONTHLY_TOKEN_LIMIT = 500_000;
+export const MONTHLY_TOKEN_LIMIT = 800_000;
 
 function getMonthKey(): string {
   const n = new Date();

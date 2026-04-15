@@ -7,6 +7,14 @@ export const executePowerBiQuery = async (
   endDate: string, 
   mode: 'performance' | 'creative'
 ) => {
+  const DATE_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) {
+    throw new Error('Datas inválidas. Formato esperado: YYYY-MM-DD');
+  }
+  if (startDate > endDate) {
+    throw new Error('Data de início não pode ser posterior à data de fim');
+  }
+
   const start = startDate.split('-').map(Number);
   const end = endDate.split('-').map(Number);
 
@@ -42,18 +50,52 @@ export const executePowerBiQuery = async (
     .replace(/{{PREV_START_DATE}}/g, `DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]})`)
     .replace(/{{PREV_END_DATE}}/g, `DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})`);
 
+  // ── Resolução da tabela/coluna de calendário ──────────────────────────────
+  // Formato do campo calendarTable: "Tabela.Coluna"
+  // Variantes testadas automaticamente quando não configurado explicitamente:
+  const CALENDAR_VARIANTS = [
+    { table: 'dCalendario',     col: 'Date' },
+    { table: 'd_calendario',    col: 'data' },
+    { table: 'dCalendarioAtual',col: 'Date' },
+    { table: 'Calendario',      col: 'Date' },
+    { table: 'Calendar',        col: 'Date' },
+  ];
+
+  function buildEvaluateBlock(
+    measureRef: string,
+    cal: { table: string; col: string } | null,
+    dateStart: number[], dateEnd: number[]
+  ): string {
+    if (!cal) return `ROW("Result", ${measureRef})`;
+    return `CALCULATETABLE(
+        ROW("Result", ${measureRef}),
+        '${cal.table}'[${cal.col}] >= DATE(${dateStart[0]}, ${dateStart[1]}, ${dateStart[2]}),
+        '${cal.table}'[${cal.col}] <= DATE(${dateEnd[0]}, ${dateEnd[1]}, ${dateEnd[2]})
+    )`;
+  }
+
+  // Resolve calendário: explícito ("Tabela.Coluna"), desativado ('') ou auto-detect
+  let resolvedCal: { table: string; col: string } | null;
+  const calRaw = client.calendarTable;
+  if (calRaw === '') {
+    resolvedCal = null; // sem filtro de datas
+  } else if (calRaw) {
+    const [t, c] = calRaw.includes('.') ? calRaw.split('.') : [calRaw, 'Date'];
+    resolvedCal = { table: t, col: c };
+  } else {
+    resolvedCal = CALENDAR_VARIANTS[0]; // dCalendario.Date como padrão
+  }
+
+  const measureRef = `'${client.measuresTable}'[Wigoo_Live_Export]`;
+
   // Query principal (período atual)
   const query = `
 DEFINE
-    MEASURE '${client.measuresTable}'[Wigoo_Live_Export] = 
+    MEASURE '${client.measuresTable}'[Wigoo_Live_Export] =
         ${injectedDax}
 
 EVALUATE
-    CALCULATETABLE(
-        ROW("Result", '${client.measuresTable}'[Wigoo_Live_Export]),
-        'dCalendario'[Date] >= DATE(${start[0]}, ${start[1]}, ${start[2]}),
-        'dCalendario'[Date] <= DATE(${end[0]}, ${end[1]}, ${end[2]})
-    )
+    ${buildEvaluateBlock(measureRef, resolvedCal, start, end)}
 `;
 
   console.log('Power BI Query Mode:', mode);
@@ -64,6 +106,7 @@ EVALUATE
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       dataset_id: client.datasetId,
+      ...(client.workspaceId ? { workspace_id: client.workspaceId } : {}),
       dax_query: query
     })
   });
@@ -77,6 +120,39 @@ EVALUATE
   console.log('Power BI API Raw Result:', result);
   
   let exportString = extractExportString(result);
+
+  // ── Auto-detect: tenta variantes de calendário se a padrão não retornou dados ──
+  if (!exportString && calRaw === undefined) {
+    for (const variant of CALENDAR_VARIANTS.slice(1)) {
+      console.log(`Auto-detect: tentando calendário '${variant.table}.${variant.col}'...`);
+      const altQuery = `
+DEFINE
+    MEASURE '${client.measuresTable}'[Wigoo_Live_Export] =
+        ${injectedDax}
+
+EVALUATE
+    ${buildEvaluateBlock(measureRef, variant, start, end)}
+`;
+      const altResp = await fetch('/api/pbi/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dataset_id: client.datasetId,
+          ...(client.workspaceId ? { workspace_id: client.workspaceId } : {}),
+          dax_query: altQuery
+        })
+      });
+      if (altResp.ok) {
+        exportString = extractExportString(await altResp.json());
+        if (exportString) {
+          resolvedCal = variant;
+          console.log(`Auto-detect: calendário encontrado → '${variant.table}.${variant.col}'`);
+          break;
+        }
+      }
+    }
+  }
+
   if (!exportString) {
     throw new Error('Nenhum dado retornado do Power BI. Verifique o dataset_id e as permissões.');
   }
@@ -98,17 +174,16 @@ EVALUATE
         .replace(/{{PREV_START_DATE}}/g, `DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]})`)
         .replace(/{{PREV_END_DATE}}/g, `DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})`);
 
+      const m1Ref = `'${client.measuresTable}'[Wigoo_M1_Export]`;
+      const m1EvaluateBlock = buildEvaluateBlock(m1Ref, resolvedCal, prevStart, prevEnd);
+
       const m1Query = `
 DEFINE
-    MEASURE '${client.measuresTable}'[Wigoo_M1_Export] = 
+    MEASURE '${client.measuresTable}'[Wigoo_M1_Export] =
         ${m1Dax}
 
 EVALUATE
-    CALCULATETABLE(
-        ROW("Result", '${client.measuresTable}'[Wigoo_M1_Export]),
-        'dCalendario'[Date] >= DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]}),
-        'dCalendario'[Date] <= DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})
-    )
+    ${m1EvaluateBlock}
 `;
 
       console.log('Power BI M-1 Query - Executing...');
@@ -117,6 +192,7 @@ EVALUATE
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           dataset_id: client.datasetId,
+          ...(client.workspaceId ? { workspace_id: client.workspaceId } : {}),
           dax_query: m1Query
         })
       });
