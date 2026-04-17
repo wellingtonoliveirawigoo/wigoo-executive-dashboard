@@ -15,6 +15,8 @@ import { sempararClient }      from './semparar';
 import { diamondClient }       from './diamond';
 import { colomboClient }       from './colombo';
 import { zemaClient }          from './zema';
+import { wolyClient }          from './woly';
+import { soulierClient }       from './soulier';
 
 export const CLIENTS = [
   // Clientes originais
@@ -34,4 +36,6 @@ export const CLIENTS = [
   diamondClient,
   colomboClient,
   zemaClient,
+  wolyClient,
+  soulierClient,
 ];
