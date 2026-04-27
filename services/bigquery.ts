@@ -258,6 +258,136 @@ function buildCreativeExport(
     `;;END_EXPORT`;
 }
 
+// ─── Casa da Toalha — Análise Geográfica ────────────────────────────────────
+
+function casadatoalhaGeoQueries(start: string, end: string) {
+  return [
+    // 0: Vendas por estado (Shopify)
+    `SELECT
+       COALESCE(
+         NULLIF(TRIM(shipping_address_province), ''),
+         NULLIF(TRIM(billing_address_province), ''),
+         'Não informado'
+       ) AS estado,
+       COUNT(*) AS pedidos,
+       SUM(total_price) AS receita,
+       AVG(total_price) AS ticket_medio
+     FROM \`power-bi-wigoo.CasaDaToalha.shopify_orders_casadatoalha\`
+     WHERE DATE(processed_at) BETWEEN '${start}' AND '${end}'
+       AND UPPER(financial_status) = 'PAID'
+     GROUP BY estado
+     ORDER BY receita DESC
+     LIMIT 30`,
+
+    // 1: Campanhas Meta por período
+    `SELECT
+       campaign_name,
+       SUM(spend) AS inv,
+       SUM(impressions) AS imp,
+       SUM(inline_link_clicks) AS clk,
+       SUM(value_purchase) AS receita,
+       SAFE_DIVIDE(SUM(spend), SUM(value_purchase)) AS roas
+     FROM \`power-bi-wigoo.CasaDaToalha.facebook_campaign_insights_casadatoalha\`
+     WHERE metric_date BETWEEN '${start}' AND '${end}'
+       AND spend > 0
+     GROUP BY campaign_name
+     ORDER BY inv DESC
+     LIMIT 20`,
+
+    // 2: Totais do período (resumo)
+    `SELECT
+       COUNT(*) AS total_pedidos,
+       SUM(total_price) AS total_receita,
+       AVG(total_price) AS ticket_medio
+     FROM \`power-bi-wigoo.CasaDaToalha.shopify_orders_casadatoalha\`
+     WHERE DATE(processed_at) BETWEEN '${start}' AND '${end}'
+       AND UPPER(financial_status) = 'PAID'`,
+
+    // 3: Pedidos por dia (série temporal para sparkline)
+    `SELECT
+       DATE(processed_at) AS dia,
+       COUNT(*) AS pedidos,
+       SUM(total_price) AS receita
+     FROM \`power-bi-wigoo.CasaDaToalha.shopify_orders_casadatoalha\`
+     WHERE DATE(processed_at) BETWEEN '${start}' AND '${end}'
+       AND UPPER(financial_status) = 'PAID'
+     GROUP BY dia
+     ORDER BY dia`
+  ];
+}
+
+export interface GeoStateData {
+  estado: string;
+  pedidos: number;
+  receita: number;
+  ticketMedio: number;
+}
+
+export interface GeoCampaignData {
+  nome: string;
+  inv: number;
+  imp: number;
+  clk: number;
+  receita: number;
+  roas: number;
+}
+
+export interface GeoAnalysisResult {
+  states: GeoStateData[];
+  campaigns: GeoCampaignData[];
+  totalPedidos: number;
+  totalReceita: number;
+  ticketMedio: number;
+  dailySeries: { dia: string; pedidos: number; receita: number }[];
+  periodStart: string;
+  periodEnd: string;
+}
+
+export async function executeBigQueryGeoQuery(
+  startDate: string,
+  endDate: string
+): Promise<GeoAnalysisResult> {
+  const DATE_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) {
+    throw new Error('Datas inválidas. Formato esperado: YYYY-MM-DD');
+  }
+
+  const fmtDate = (d: string) => {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  };
+
+  const results = await bqFetch(casadatoalhaGeoQueries(startDate, endDate));
+  const [stateRows, campaignRows, totalRows, dailyRows] = results;
+
+  return {
+    states: stateRows.map(r => ({
+      estado: r.estado || 'Não informado',
+      pedidos: n(r.pedidos),
+      receita: n(r.receita),
+      ticketMedio: n(r.ticket_medio),
+    })),
+    campaigns: campaignRows.map(r => ({
+      nome: r.campaign_name || '',
+      inv: n(r.inv),
+      imp: n(r.imp),
+      clk: n(r.clk),
+      receita: n(r.receita),
+      roas: n(r.roas),
+    })),
+    totalPedidos: n(totalRows[0]?.total_pedidos),
+    totalReceita: n(totalRows[0]?.total_receita),
+    ticketMedio: n(totalRows[0]?.ticket_medio),
+    dailySeries: dailyRows.map(r => ({
+      dia: r.dia || '',
+      pedidos: n(r.pedidos),
+      receita: n(r.receita),
+    })),
+    periodStart: fmtDate(startDate),
+    periodEnd: fmtDate(endDate),
+  };
+}
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 export async function executeBigQueryQuery(

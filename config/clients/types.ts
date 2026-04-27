@@ -19,4 +19,6 @@ export interface ClientConfig {
   calendarTable?: string;
   /** Dataset BigQuery (ex: 'CasaDaToalha'). Se definido, usa como fallback após Power BI. */
   bqDataset?: string;
+  /** Quando true, renderiza a página de análise geográfica (vendas por estado) em vez do dashboard padrão. */
+  geoAnalysis?: boolean;
 }
