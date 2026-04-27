@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface MonthEntry { rev: number; orders: number; sessions: number; }
+interface StateEntry { state: string; rev: number; orders: number; }
 interface CampaignRow {
   id: string;
   name: string;
   src: string;
   total: MonthEntry;
   months: Record<string, MonthEntry>;
+  byState: StateEntry[];
 }
 interface StateRow {
   name: string;
@@ -38,6 +40,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 65899,  orders: 205, sessions: 18700 },
       '202604': { rev: 41684,  orders: 113, sessions: 11517 },
     },
+    byState: [
+      { state:'SP', rev:75592, orders:246 }, { state:'MG', rev:14418, orders:44 },
+      { state:'RJ', rev:13893, orders:46 },  { state:'RS', rev:10808, orders:41 },
+      { state:'BA', rev:9251,  orders:26 },  { state:'PR', rev:9154,  orders:33 },
+      { state:'SC', rev:9027,  orders:31 },  { state:'PE', rev:8752,  orders:18 },
+    ],
   },
   {
     id: '120233362899670533', name: 'Catálogo DPA 01 · Remarketing',
@@ -49,6 +57,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 30657,  orders: 116, sessions: 9000  },
       '202604': { rev: 31993,  orders: 107, sessions: 6889  },
     },
+    byState: [
+      { state:'SP', rev:35197, orders:125 }, { state:'RJ', rev:22281, orders:73  },
+      { state:'MG', rev:12065, orders:42  }, { state:'BA', rev:5065,  orders:14  },
+      { state:'PE', rev:5035,  orders:16  }, { state:'RS', rev:3812,  orders:17  },
+      { state:'ES', rev:3765,  orders:11  }, { state:'SC', rev:3193,  orders:9   },
+    ],
   },
   {
     id: '120209904601020533', name: 'Wave VD · 63 Centavos',
@@ -60,6 +74,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 22587,  orders: 71,  sessions: 7100  },
       '202604': { rev: 10964,  orders: 29,  sessions: 3673  },
     },
+    byState: [
+      { state:'SP', rev:36133, orders:109 }, { state:'MG', rev:10361, orders:33  },
+      { state:'RJ', rev:7155,  orders:25  }, { state:'SC', rev:6114,  orders:17  },
+      { state:'BA', rev:5156,  orders:11  }, { state:'DF', rev:4876,  orders:11  },
+      { state:'RS', rev:4610,  orders:15  }, { state:'PR', rev:3777,  orders:12  },
+    ],
   },
   {
     id: '120237824657680533', name: 'LAL Jogo Wave · Est. Branca',
@@ -71,6 +91,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 23590,  orders: 71,  sessions: 3700  },
       '202604': { rev: 12881,  orders: 41,  sessions: 2893  },
     },
+    byState: [
+      { state:'SP', rev:29050, orders:93  }, { state:'RJ', rev:12797, orders:39  },
+      { state:'MG', rev:11052, orders:32  }, { state:'SC', rev:7729,  orders:23  },
+      { state:'BA', rev:6896,  orders:16  }, { state:'RS', rev:5988,  orders:20  },
+      { state:'PE', rev:5484,  orders:15  }, { state:'PR', rev:5224,  orders:16  },
+    ],
   },
   {
     id: 'WG_CONVERSÃO_KIT_WAVE', name: 'WG Conversão · Kit Wave',
@@ -82,6 +108,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 40721,  orders: 125, sessions: 5900 },
       '202604': { rev: 19793,  orders: 58,  sessions: 3392 },
     },
+    byState: [
+      { state:'SP', rev:19087, orders:59  }, { state:'RJ', rev:5380,  orders:19  },
+      { state:'BA', rev:4543,  orders:11  }, { state:'CE', rev:4330,  orders:11  },
+      { state:'PR', rev:3571,  orders:12  }, { state:'MG', rev:3561,  orders:10  },
+      { state:'PE', rev:3529,  orders:11  }, { state:'MT', rev:2556,  orders:4   },
+    ],
   },
   {
     id: '120240276217390533', name: 'Essence VD · Enganado (Variante B)',
@@ -93,6 +125,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 32686,  orders: 110, sessions: 10500 },
       '202604': { rev: 21916,  orders: 74,  sessions: 6666 },
     },
+    byState: [
+      { state:'RJ', rev:25559, orders:87  }, { state:'SP', rev:12792, orders:47  },
+      { state:'MG', rev:4962,  orders:16  }, { state:'ES', rev:3027,  orders:8   },
+      { state:'RS', rev:2406,  orders:4   }, { state:'BA', rev:2296,  orders:5   },
+      { state:'PR', rev:976,   orders:5   }, { state:'MT', rev:792,   orders:3   },
+    ],
   },
   {
     id: 'WG_CONVERSÃO_ANO_NOVO', name: 'WG Conversão · Ano Novo',
@@ -104,6 +142,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 29407,  orders: 103, sessions: 6800 },
       '202604': { rev: 24282,  orders: 72,  sessions: 4209 },
     },
+    byState: [
+      { state:'SP', rev:19156, orders:67  }, { state:'MG', rev:7194,  orders:18  },
+      { state:'RJ', rev:4572,  orders:18  }, { state:'RS', rev:3834,  orders:11  },
+      { state:'DF', rev:2396,  orders:7   }, { state:'BA', rev:2305,  orders:8   },
+      { state:'SC', rev:2269,  orders:7   }, { state:'PE', rev:1952,  orders:6   },
+    ],
   },
   {
     id: '120240276183270533', name: 'Essence VD · Enganado (Variante C)',
@@ -115,6 +159,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 36630,  orders: 107, sessions: 9800 },
       '202604': { rev: 13471,  orders: 40,  sessions: 4630 },
     },
+    byState: [
+      { state:'MG', rev:20514, orders:62  }, { state:'SP', rev:12890, orders:42  },
+      { state:'BA', rev:5380,  orders:6   }, { state:'RJ', rev:5250,  orders:17  },
+      { state:'GO', rev:1356,  orders:5   }, { state:'ES', rev:860,   orders:3   },
+      { state:'PB', rev:810,   orders:2   }, { state:'RS', rev:784,   orders:2   },
+    ],
   },
   {
     id: '120237822074150533', name: 'LAL Kit Wave · Est. Degrade',
@@ -126,6 +176,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 6602,   orders: 19,  sessions: 1000 },
       '202604': { rev: 0,      orders: 0,   sessions: 0    },
     },
+    byState: [
+      { state:'RJ', rev:18765, orders:43  }, { state:'SP', rev:16009, orders:42  },
+      { state:'GO', rev:6184,  orders:15  }, { state:'MG', rev:5656,  orders:18  },
+      { state:'RS', rev:4790,  orders:15  }, { state:'PE', rev:4004,  orders:8   },
+      { state:'BA', rev:2852,  orders:8   }, { state:'PR', rev:2697,  orders:7   },
+    ],
   },
   {
     id: '120236241962090533', name: 'RMKT Toalha Azul · Multi-formato',
@@ -137,6 +193,12 @@ const CAMPAIGNS: CampaignRow[] = [
       '202603': { rev: 8124,   orders: 23,  sessions: 1100 },
       '202604': { rev: 2232,   orders: 8,   sessions: 494  },
     },
+    byState: [
+      { state:'SP', rev:22537, orders:75  }, { state:'RJ', rev:12862, orders:43  },
+      { state:'MG', rev:6936,  orders:20  }, { state:'RS', rev:4556,  orders:13  },
+      { state:'BA', rev:3914,  orders:15  }, { state:'PR', rev:3396,  orders:10  },
+      { state:'SC', rev:2905,  orders:7   }, { state:'PE', rev:2886,  orders:7   },
+    ],
   },
 ];
 
@@ -177,6 +239,7 @@ interface Props { clientName: string; theme: 'light' | 'dark'; }
 const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
   const [activePeriod, setActivePeriod] = useState<'geral'|'202601'|'202602'|'202603'|'202604'>('geral');
   const [activeTab, setActiveTab] = useState<'estados'|'campanhas'>('campanhas');
+  const [expandedCamp, setExpandedCamp] = useState<string | null>(null);
 
   const isDark = theme === 'dark';
 
@@ -272,6 +335,33 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
           ))}
         </div>
 
+        {/* ── AVISO DE METODOLOGIA ── */}
+        <div style={{
+          background: isDark ? '#1a1f35' : '#f8faff',
+          border: `1px solid ${isDark ? '#2a3555' : '#dbeafe'}`,
+          borderRadius: 14, padding: '10px 16px', marginBottom: 20,
+          display: 'flex', alignItems: 'flex-start', gap: 10,
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+          <p style={{ fontSize: 11, color: isDark ? '#93c5fd' : '#1e40af', margin: 0, lineHeight: 1.6 }}>
+            <strong>Metodologia:</strong> dados filtrados por{' '}
+            <code style={{ background: isDark ? '#1e3a5f' : '#dbeafe', padding: '1px 5px', borderRadius: 4 }}>
+              Origem/mídia da sessão contém "meta"
+            </code>{' '}
+            +{' '}
+            <code style={{ background: isDark ? '#1e3a5f' : '#dbeafe', padding: '1px 5px', borderRadius: 4 }}>
+              "facebook"
+            </code>{' '}
+            +{' '}
+            <code style={{ background: isDark ? '#1e3a5f' : '#dbeafe', padding: '1px 5px', borderRadius: 4 }}>
+              "paid_social"
+            </code>
+            . Inclui tráfego orgânico do Instagram e referral do Facebook — pode gerar leve divergência
+            em relação ao filtro estrito <em>"contém meta"</em> no GA4 Explorations (~R$ 5–6k/mês).
+            Receita por estado via dimensão <code style={{ background: isDark ? '#1e3a5f' : '#dbeafe', padding: '1px 5px', borderRadius: 4 }}>region</code> do GA4.
+          </p>
+        </div>
+
         {/* ── TABS ── */}
         <div style={{ display:'flex', gap:2, background: isDark ? '#0f172a' : '#f1f5f9', padding:4, borderRadius:16, marginBottom:24, width:'fit-content' }}>
           {([['campanhas','📢 Campanhas'],['estados','📍 Estados']] as const).map(([key, label]) => (
@@ -305,8 +395,8 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
             </div>
 
             {/* header tabela */}
-            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 90px 90px 90px', gap:12, padding:'10px 24px', borderBottom:`1px solid ${border}` }}>
-              {['Campanha','Evolução Mensal','Receita','Pedidos','Ticket'].map(h => (
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 90px 90px 90px 28px', gap:12, padding:'10px 24px', borderBottom:`1px solid ${border}` }}>
+              {['Campanha','Evolução Mensal','Receita','Pedidos','Ticket',''].map(h => (
                 <div key={h} style={{ fontSize:9, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:muted, textAlign: h !== 'Campanha' && h !== 'Evolução Mensal' ? 'right' : 'left' }}>{h}</div>
               ))}
             </div>
@@ -315,50 +405,92 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
             {filteredCampaigns.map((c, idx) => {
               const ticket = c.data.orders > 0 ? Math.round(c.data.rev / c.data.orders) : 0;
               const maxMonthRev = Math.max(...MONTHS_ORDER.map(m => c.months[m]?.rev || 0));
+              const isExpanded = expandedCamp === c.id;
+              const maxStateRev = c.byState[0]?.rev || 1;
               return (
-                <div key={c.id} style={{
-                  display:'grid', gridTemplateColumns:'2fr 1fr 90px 90px 90px', gap:12,
-                  padding:'14px 24px', borderBottom: idx < filteredCampaigns.length-1 ? `1px solid ${border}` : 'none',
-                  transition:'background .15s',
-                }}>
-                  {/* nome */}
-                  <div>
+                <div key={c.id} style={{ borderBottom: idx < filteredCampaigns.length-1 ? `1px solid ${border}` : 'none' }}>
+                  {/* linha principal — clicável */}
+                  <div
+                    onClick={() => setExpandedCamp(isExpanded ? null : c.id)}
+                    style={{
+                      display:'grid', gridTemplateColumns:'2fr 1fr 90px 90px 90px 28px', gap:12,
+                      padding:'14px 24px', cursor:'pointer',
+                      background: isExpanded ? (isDark ? 'rgba(37,99,235,0.08)' : '#f0f7ff') : 'transparent',
+                      transition:'background .15s',
+                    }}>
+                    {/* nome */}
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                       <span style={{ fontSize:10, fontWeight:900, color:muted, width:18 }}>{idx+1}</span>
                       <div>
                         <div style={{ fontSize:12, fontWeight:700, color:text, lineHeight:1.3 }}>{c.name}</div>
                         <div style={{ fontSize:10, color:muted, marginTop:2, fontFamily:'monospace' }}>
-                          {c.id.length > 12 ? c.id : c.id} · {c.src}
+                          {c.id} · {c.src}
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* sparkline mensal */}
-                  <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:32 }}>
-                    {MONTHS_ORDER.map(m => {
-                      const val = c.months[m]?.rev || 0;
-                      const pct = maxMonthRev > 0 ? val / maxMonthRev : 0;
-                      const isActive = m === activePeriod;
-                      return (
-                        <div key={m} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
-                          <div style={{
-                            width:'100%', height: Math.max(pct * 24, val > 0 ? 4 : 0),
-                            background: isActive ? '#2563eb' : (val > 0 ? '#bfdbfe' : '#e2e8f0'),
-                            borderRadius:2, transition:'height .3s',
-                          }} />
-                          <div style={{ fontSize:8, color: isActive ? '#2563eb' : muted, fontWeight: isActive ? 800 : 400 }}>
-                            {['J','F','M','A'][MONTHS_ORDER.indexOf(m)]}
+                    {/* sparkline */}
+                    <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:32 }}>
+                      {MONTHS_ORDER.map(m => {
+                        const val = c.months[m]?.rev || 0;
+                        const pct = maxMonthRev > 0 ? val / maxMonthRev : 0;
+                        const isActive = m === activePeriod;
+                        return (
+                          <div key={m} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                            <div style={{
+                              width:'100%', height: Math.max(pct * 24, val > 0 ? 4 : 0),
+                              background: isActive ? '#2563eb' : (val > 0 ? '#bfdbfe' : (isDark?'#1e2a3a':'#e2e8f0')),
+                              borderRadius:2, transition:'height .3s',
+                            }} />
+                            <div style={{ fontSize:8, color: isActive ? '#2563eb' : muted, fontWeight: isActive ? 800 : 400 }}>
+                              {['J','F','M','A'][MONTHS_ORDER.indexOf(m)]}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    {/* métricas */}
+                    <div style={{ fontSize:13, fontWeight:800, color:text, textAlign:'right' }}>{fmtFull(c.data.rev)}</div>
+                    <div style={{ fontSize:12, fontWeight:700, color:'#2563eb', textAlign:'right' }}>{c.data.orders}</div>
+                    <div style={{ fontSize:12, fontWeight:700, color:'#10b981', textAlign:'right' }}>R$ {ticket.toLocaleString('pt-BR')}</div>
+                    {/* chevron */}
+                    <div style={{ fontSize:12, color:muted, textAlign:'center', alignSelf:'center', transform: isExpanded ? 'rotate(180deg)' : 'none', transition:'transform .2s' }}>▾</div>
                   </div>
 
-                  {/* métricas */}
-                  <div style={{ fontSize:13, fontWeight:800, color:text, textAlign:'right' }}>{fmtFull(c.data.rev)}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#2563eb', textAlign:'right' }}>{c.data.orders}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#10b981', textAlign:'right' }}>R$ {ticket.toLocaleString('pt-BR')}</div>
+                  {/* painel de estados expandível */}
+                  {isExpanded && (
+                    <div style={{
+                      background: isDark ? 'rgba(37,99,235,0.05)' : '#f8fbff',
+                      borderTop: `1px dashed ${isDark ? '#2a3a6a' : '#bfdbfe'}`,
+                      padding: '16px 24px 20px 52px',
+                    }}>
+                      <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.15em', textTransform:'uppercase', color:'#2563eb', marginBottom:12 }}>
+                        📍 Receita por Estado · Jan–Abr 2026 (todos os períodos)
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
+                        {c.byState.map((s, si) => {
+                          const pct = (s.rev / maxStateRev) * 100;
+                          const stateTicket = s.orders > 0 ? Math.round(s.rev / s.orders) : 0;
+                          return (
+                            <div key={s.state} style={{
+                              background: isDark ? '#0f172a' : '#fff',
+                              border: `1px solid ${isDark ? '#1e2a4a' : '#dbeafe'}`,
+                              borderRadius:10, padding:'10px 12px',
+                            }}>
+                              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                                <span style={{ fontSize:11, fontWeight:800, color:text }}>{s.state}</span>
+                                <span style={{ fontSize:9, fontWeight:700, color:muted }}>#{si+1}</span>
+                              </div>
+                              <div style={{ height:4, background: isDark?'#1e2a3a':'#e2e8f0', borderRadius:100, overflow:'hidden', marginBottom:6 }}>
+                                <div style={{ width:`${pct}%`, height:'100%', background:'#3b82f6', borderRadius:100 }} />
+                              </div>
+                              <div style={{ fontSize:12, fontWeight:800, color:text }}>{fmtR(s.rev)}</div>
+                              <div style={{ fontSize:10, color:muted, marginTop:2 }}>{s.orders} ped · R${stateTicket} ticket</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
