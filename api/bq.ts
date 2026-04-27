@@ -36,6 +36,7 @@ async function getGoogleToken(sa: Record<string, string>): Promise<string> {
 
 const ALLOWED_ORIGINS = [
   'https://wigoo-executive-dashboard.vercel.app',
+  'https://dash-executivo-green.vercel.app',
   'http://localhost:5173',
   'http://localhost:4173',
 ];
