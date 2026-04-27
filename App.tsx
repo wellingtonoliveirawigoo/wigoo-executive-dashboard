@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import AdminModal from './components/AdminModal';
 import LiveConnectionPanel from './components/LiveConnectionPanel';
 import LandingPage from './components/LandingPage';
+import GeoAnalysisPage from './components/GeoAnalysisPage';
 import TokenUsageBar from './components/TokenUsageBar';
 import { CLIENTS } from './config/clients';
 import { Creative } from './types';
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   const lockedClient = CLIENTS.find(c => c.slug.toLowerCase() === path);
   const isLanding = path === '' || (!lockedClient && path !== 'admin');
   const isCreativesOnly = !!lockedClient?.creativesOnly;
+  const isGeoAnalysis = !!lockedClient?.geoAnalysis;
   
   const [selectedClientId, setSelectedClientId] = useState(lockedClient?.id || CLIENTS[0].id);
   const clientId = lockedClient?.id || selectedClientId;
@@ -123,6 +125,22 @@ const App: React.FC = () => {
 
   if (isLanding) {
     return <LandingPage />;
+  }
+
+  if (isGeoAnalysis) {
+    return (
+      <>
+        <Header
+          onOpenAdmin={() => setIsAdminOpen(true)}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          clientName={lockedClient?.name}
+        />
+        <GeoAnalysisPage clientName={lockedClient?.name || 'Casa da Toalha'} theme={theme} />
+        <AdminModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} customPrompt={customPrompt} setCustomPrompt={setCustomPrompt} />
+        <TokenUsageBar clientId={clientId} />
+      </>
+    );
   }
 
   return (
