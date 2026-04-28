@@ -33,12 +33,12 @@ const CAMPAIGNS: CampaignRow[] = [
   {
     id: '120216037685880533', name: 'Essence VD · Você Está Sendo Enganado',
     src: 'meta_est_conv_adv_essence_vd',
-    total: { rev: 209135, orders: 626, sessions: 59917 },
+    total: { rev: 209924, orders: 630, sessions: 62297 },
     months: {
-      '202601': { rev: 50591,  orders: 141, sessions: 14500 },
-      '202602': { rev: 50961,  orders: 167, sessions: 15200 },
-      '202603': { rev: 65899,  orders: 205, sessions: 18700 },
-      '202604': { rev: 41684,  orders: 113, sessions: 11517 },
+      '202601': { rev: 50991,  orders: 143, sessions: 14600 },
+      '202602': { rev: 51150,  orders: 168, sessions: 15355 },
+      '202603': { rev: 65899,  orders: 205, sessions: 18876 },
+      '202604': { rev: 41884,  orders: 114, sessions: 13466 },
     },
     byState: [
       { state:'SP', rev:75592, orders:246 }, { state:'MG', rev:14418, orders:44 },
