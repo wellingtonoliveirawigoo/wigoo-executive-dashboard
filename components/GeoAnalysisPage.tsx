@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 interface MonthEntry { rev: number; orders: number; sessions: number; }
 interface StateEntry { state: string; rev: number; orders: number; }
+interface StateMonthEntry { rev: number; orders: number; }
 interface CampaignRow {
   id: string;
   name: string;
@@ -11,6 +12,7 @@ interface CampaignRow {
   total: MonthEntry;
   months: Record<string, MonthEntry>;
   byState: StateEntry[];
+  byStateMonth: Record<string, Record<string, StateMonthEntry>>;
 }
 interface StateRow {
   name: string;
@@ -56,6 +58,34 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'MA', rev:580,   orders:1   }, { state:'RR', rev:378,   orders:2   },
       { state:'AP', rev:190,   orders:1   }, { state:'AC', rev:190,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:21648.53,orders:62}, '202602':{rev:18574.88,orders:62}, '202603':{rev:20339.07,orders:76}, '202604':{rev:15106.68,orders:47} },
+      'MG': { '202601':{rev:3112.8,orders:11},   '202602':{rev:7353.98,orders:24},  '202603':{rev:3391.9,orders:8},   '202604':{rev:559.8,orders:1}    },
+      'RJ': { '202601':{rev:6408.73,orders:19},  '202602':{rev:5429.15,orders:20},  '202603':{rev:1497.23,orders:5},  '202604':{rev:558.34,orders:2}   },
+      'RS': { '202601':{rev:1572.25,orders:5},   '202602':{rev:2047.13,orders:8},   '202603':{rev:4778.72,orders:19}, '202604':{rev:2609.94,orders:10}  },
+      'BA': { '202601':{rev:1887.12,orders:5},   '202602':{rev:2124.02,orders:7},   '202603':{rev:2342.77,orders:7},  '202604':{rev:2897.02,orders:7}   },
+      'SC': { '202601':{rev:1463.62,orders:5},   '202602':{rev:1228.04,orders:4},   '202603':{rev:3633.0,orders:12},  '202604':{rev:2895.85,orders:11}  },
+      'PR': { '202601':{rev:1952.19,orders:8},   '202602':{rev:1497.58,orders:7},   '202603':{rev:4342.16,orders:13}, '202604':{rev:1361.89,orders:5}   },
+      'PE': { '202601':{rev:484.62,orders:2},    '202602':{rev:2464.19,orders:5},   '202603':{rev:1717.34,orders:5},  '202604':{rev:4085.6,orders:6}    },
+      'CE': { '202601':{rev:193.91,orders:1},    '202602':{rev:1168.93,orders:4},   '202603':{rev:3994.88,orders:8},  '202604':{rev:2870.46,orders:4}   },
+      'DF': { '202601':{rev:4484.19,orders:4},   '202602':{rev:1346.75,orders:5},   '202603':{rev:1887.04,orders:7},  '202604':{rev:184.22,orders:1}    },
+      'ES': { '202601':{rev:892.78,orders:4},    '202602':{rev:1386.45,orders:4},   '202603':{rev:3152.59,orders:9},  '202604':{rev:1927.66,orders:5}   },
+      'AM': { '202601':{rev:1039.5,orders:2},    '202602':{rev:2030.6,orders:1},    '202603':{rev:1827.85,orders:2},  '202604':{rev:1610.36,orders:4}   },
+      'GO': { '202601':{rev:569.7,orders:2},     '202602':{rev:393.81,orders:2},    '202603':{rev:2967.8,orders:11},  '202604':{rev:1572.2,orders:4}    },
+      'PA': { '202601':{rev:189.91,orders:1},    '202602':{rev:640.91,orders:2},    '202603':{rev:2501.51,orders:4},  '202604':{rev:1090.43,orders:2}   },
+      'PB': { '202601':{rev:971.52,orders:3},    '202602':{rev:1219.01,orders:4},   '202603':{rev:2019.32,orders:4},  '202604':{rev:0,orders:0}         },
+      'MS': { '202601':{rev:0,orders:0},         '202602':{rev:1253.23,orders:4},   '202603':{rev:1840.62,orders:4},  '202604':{rev:779.62,orders:2}    },
+      'AL': { '202601':{rev:1354.48,orders:2},   '202602':{rev:193.91,orders:1},    '202603':{rev:399.8,orders:1},    '202604':{rev:184.22,orders:1}    },
+      'RN': { '202601':{rev:799.6,orders:2},     '202602':{rev:0,orders:0},         '202603':{rev:1122.34,orders:2},  '202604':{rev:199.9,orders:1}     },
+      'PI': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:398.82,orders:1},   '202604':{rev:1379.34,orders:2}   },
+      'MT': { '202601':{rev:706.3,orders:2},     '202602':{rev:419.8,orders:2},     '202603':{rev:0,orders:0},        '202604':{rev:189.91,orders:1}    },
+      'SE': { '202601':{rev:279.9,orders:1},     '202602':{rev:0,orders:0},         '202603':{rev:364.62,orders:2},   '202604':{rev:656.19,orders:2}    },
+      'TO': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:806.03,orders:2},   '202604':{rev:0,orders:0}         },
+      'MA': { '202601':{rev:579.8,orders:1},     '202602':{rev:0,orders:0},         '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}         },
+      'RR': { '202601':{rev:0,orders:0},         '202602':{rev:184.22,orders:1},    '202603':{rev:193.91,orders:1},   '202604':{rev:0,orders:0}         },
+      'AP': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:189.91,orders:1},   '202604':{rev:0,orders:0}         },
+      'AC': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:189.91,orders:1},   '202604':{rev:0,orders:0}         },
+    },
   },
   {
     id: '120237824657680533', name: 'LAL Jogo Wave · Est. Branca',
@@ -81,6 +111,32 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'SE', rev:409,   orders:2   }, { state:'RN', rev:400,   orders:2   },
       { state:'MS', rev:220,   orders:1   }, { state:'AC', rev:209,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:10223.15,orders:31}, '202602':{rev:7072.33,orders:22}, '202603':{rev:5847.4,orders:22},  '202604':{rev:5906.64,orders:18} },
+      'RJ': { '202601':{rev:5451.26,orders:15},  '202602':{rev:2779.21,orders:9},  '202603':{rev:1700.6,orders:6},   '202604':{rev:2865.93,orders:9}  },
+      'MG': { '202601':{rev:4969.88,orders:12},  '202602':{rev:2962.72,orders:10}, '202603':{rev:2075.56,orders:6},  '202604':{rev:1043.58,orders:4}  },
+      'SC': { '202601':{rev:2497.28,orders:8},   '202602':{rev:950.98,orders:4},   '202603':{rev:3101.94,orders:7},  '202604':{rev:1390.39,orders:5}  },
+      'BA': { '202601':{rev:1925.92,orders:5},   '202602':{rev:1438.43,orders:3},  '202603':{rev:2832.02,orders:6},  '202604':{rev:699.83,orders:2}   },
+      'RS': { '202601':{rev:2234.41,orders:7},   '202602':{rev:1820.92,orders:3},  '202603':{rev:795.78,orders:4},   '202604':{rev:1136.92,orders:6}  },
+      'PE': { '202601':{rev:1662.55,orders:6},   '202602':{rev:1148.51,orders:3},  '202603':{rev:1943.33,orders:4},  '202604':{rev:729.5,orders:2}    },
+      'PR': { '202601':{rev:1902.41,orders:6},   '202602':{rev:755.89,orders:3},   '202603':{rev:1758.34,orders:4},  '202604':{rev:1025.55,orders:4}  },
+      'GO': { '202601':{rev:694.04,orders:2},    '202602':{rev:635.52,orders:2},   '202603':{rev:1359.5,orders:4},   '202604':{rev:1291.14,orders:2}  },
+      'DF': { '202601':{rev:1312.81,orders:4},   '202602':{rev:422.55,orders:2},   '202603':{rev:609.22,orders:3},   '202604':{rev:666.53,orders:2}   },
+      'MA': { '202601':{rev:1419.4,orders:2},    '202602':{rev:208.91,orders:1},   '202603':{rev:398.82,orders:1},   '202604':{rev:423.72,orders:1}   },
+      'ES': { '202601':{rev:1465.13,orders:4},   '202602':{rev:398.82,orders:1},   '202603':{rev:219.9,orders:1},    '202604':{rev:219.9,orders:1}    },
+      'MT': { '202601':{rev:1027.73,orders:2},   '202602':{rev:842.58,orders:4},   '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'CE': { '202601':{rev:199.9,orders:1},     '202602':{rev:833.82,orders:1},   '202603':{rev:219.9,orders:1},    '202604':{rev:545.98,orders:1}   },
+      'RO': { '202601':{rev:202.65,orders:1},    '202602':{rev:219.9,orders:1},    '202603':{rev:797.64,orders:1},   '202604':{rev:0,orders:0}        },
+      'PA': { '202601':{rev:439.8,orders:1},     '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:620.18,orders:2}   },
+      'AM': { '202601':{rev:699.7,orders:2},     '202602':{rev:168.6,orders:1},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'PI': { '202601':{rev:588.73,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:219.9,orders:1},    '202604':{rev:0,orders:0}        },
+      'TO': { '202601':{rev:0,orders:0},         '202602':{rev:334.8,orders:1},    '202603':{rev:199.41,orders:1},   '202604':{rev:0,orders:0}        },
+      'PB': { '202601':{rev:0,orders:0},         '202602':{rev:409.8,orders:1},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'SE': { '202601':{rev:199.9,orders:1},     '202602':{rev:208.91,orders:1},   '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'RN': { '202601':{rev:299.9,orders:1},     '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:100.44,orders:1}   },
+      'MS': { '202601':{rev:219.9,orders:1},     '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'AC': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:208.91,orders:1}   },
+    },
   },
   {
     id: '120233362899670533', name: 'Catálogo DPA 01 · Remarketing',
@@ -106,6 +162,31 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'SE', rev:337,   orders:2   }, { state:'PB', rev:200,   orders:1   },
       { state:'AM', rev:180,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:6990.67,orders:24},  '202602':{rev:9253.24,orders:31},  '202603':{rev:10504.31,orders:39}, '202604':{rev:8585.35,orders:31} },
+      'RJ': { '202601':{rev:3134.16,orders:11},  '202602':{rev:3956.02,orders:13},  '202603':{rev:6512.51,orders:25},  '202604':{rev:8678.17,orders:24} },
+      'MG': { '202601':{rev:2573.15,orders:8},   '202602':{rev:1883.9,orders:4},    '202603':{rev:3739.95,orders:16},  '202604':{rev:4050.87,orders:15} },
+      'BA': { '202601':{rev:1576.04,orders:4},   '202602':{rev:599.7,orders:2},     '202603':{rev:389.81,orders:2},    '202604':{rev:2499.25,orders:6}  },
+      'PE': { '202601':{rev:1022.51,orders:4},   '202602':{rev:1204.01,orders:4},   '202603':{rev:1597.11,orders:5},   '202604':{rev:1211.02,orders:3}  },
+      'RS': { '202601':{rev:1276.02,orders:4},   '202602':{rev:698.87,orders:4},    '202603':{rev:761.07,orders:3},    '202604':{rev:1657.25,orders:7}  },
+      'ES': { '202601':{rev:199.9,orders:1},     '202602':{rev:559.8,orders:2},     '202603':{rev:977.82,orders:3},    '202604':{rev:2027.81,orders:5}  },
+      'DF': { '202601':{rev:417.55,orders:1},    '202602':{rev:794.93,orders:3},    '202603':{rev:773.38,orders:4},    '202604':{rev:1419.7,orders:4}   },
+      'SC': { '202601':{rev:1823.28,orders:2},   '202602':{rev:393.81,orders:2},    '202603':{rev:602.04,orders:3},    '202604':{rev:374.13,orders:2}   },
+      'CE': { '202601':{rev:114.9,orders:1},     '202602':{rev:581.72,orders:2},    '202603':{rev:842.71,orders:3},    '202604':{rev:590.33,orders:3}   },
+      'PR': { '202601':{rev:0,orders:0},         '202602':{rev:269.7,orders:1},     '202603':{rev:522.91,orders:2},    '202604':{rev:932.82,orders:3}   },
+      'AL': { '202601':{rev:895.02,orders:2},    '202602':{rev:399.8,orders:1},     '202603':{rev:219.9,orders:1},     '202604':{rev:0,orders:0}        },
+      'GO': { '202601':{rev:279.9,orders:1},     '202602':{rev:655.23,orders:1},    '202603':{rev:545.81,orders:2},    '202604':{rev:0,orders:0}        },
+      'MS': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:779.62,orders:2},    '202604':{rev:193.91,orders:1}   },
+      'MT': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:0,orders:0},         '202604':{rev:753.15,orders:3}   },
+      'TO': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:699.7,orders:1},     '202604':{rev:0,orders:0}        },
+      'MA': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:189.9,orders:1},     '202604':{rev:465.42,orders:2}   },
+      'RN': { '202601':{rev:0,orders:0},         '202602':{rev:394.6,orders:1},     '202603':{rev:203.61,orders:1},    '202604':{rev:0,orders:0}        },
+      'PI': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:594.7,orders:2},     '202604':{rev:0,orders:0}        },
+      'PA': { '202601':{rev:0,orders:0},         '202602':{rev:218.41,orders:1},    '202603':{rev:0,orders:0},         '202604':{rev:193.91,orders:1}   },
+      'SE': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:0,orders:0},         '202604':{rev:337.16,orders:2}   },
+      'PB': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:199.9,orders:1},     '202604':{rev:0,orders:0}        },
+      'AM': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:0,orders:0},         '202604':{rev:179.8,orders:1}    },
+    },
   },
   {
     id: '120209904601020533', name: 'Wave VD · 63 Centavos',
@@ -130,6 +211,30 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'RN', rev:384,   orders:2   }, { state:'MA', rev:280,   orders:1   },
       { state:'AL', rev:200,   orders:1   }, { state:'PI', rev:194,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:9892.74,orders:32},  '202602':{rev:10831.31,orders:32}, '202603':{rev:9614.32,orders:29},  '202604':{rev:5794.14,orders:16} },
+      'MG': { '202601':{rev:3010.92,orders:10},  '202602':{rev:2790.0,orders:10},   '202603':{rev:2475.92,orders:9},   '202604':{rev:2084.26,orders:4}  },
+      'RJ': { '202601':{rev:1854.01,orders:6},   '202602':{rev:2201.76,orders:9},   '202603':{rev:1739.88,orders:7},   '202604':{rev:1359.31,orders:3}  },
+      'SC': { '202601':{rev:1023.51,orders:4},   '202602':{rev:2557.74,orders:6},   '202603':{rev:1298.49,orders:4},   '202604':{rev:1234.56,orders:3}  },
+      'BA': { '202601':{rev:2153.01,orders:3},   '202602':{rev:1131.67,orders:3},   '202603':{rev:974.41,orders:3},    '202604':{rev:897.04,orders:2}   },
+      'DF': { '202601':{rev:1819.2,orders:2},    '202602':{rev:1495.07,orders:4},   '202603':{rev:1134.88,orders:4},   '202604':{rev:426.61,orders:1}   },
+      'RS': { '202601':{rev:708.71,orders:3},    '202602':{rev:1472.05,orders:6},   '202603':{rev:1516.75,orders:3},   '202604':{rev:912.35,orders:3}   },
+      'PR': { '202601':{rev:426.61,orders:1},    '202602':{rev:517.44,orders:2},    '202603':{rev:1530.87,orders:4},   '202604':{rev:1302.05,orders:5}  },
+      'GO': { '202601':{rev:284.91,orders:1},    '202602':{rev:479.22,orders:2},    '202603':{rev:628.71,orders:2},    '202604':{rev:2040.84,orders:5}  },
+      'PE': { '202601':{rev:1387.16,orders:3},   '202602':{rev:0,orders:0},         '202603':{rev:950.52,orders:3},    '202604':{rev:1081.46,orders:3}  },
+      'ES': { '202601':{rev:819.6,orders:2},     '202602':{rev:648.71,orders:2},    '202603':{rev:493.21,orders:2},    '202604':{rev:0,orders:0}        },
+      'SE': { '202601':{rev:601.11,orders:1},    '202602':{rev:797.64,orders:1},    '202603':{rev:0,orders:0},         '202604':{rev:0,orders:0}        },
+      'PA': { '202601':{rev:616.12,orders:2},    '202602':{rev:271.51,orders:1},    '202603':{rev:0,orders:0},         '202604':{rev:324.76,orders:1}   },
+      'MT': { '202601':{rev:199.9,orders:1},     '202602':{rev:213.31,orders:1},    '202603':{rev:413.51,orders:2},    '202604':{rev:218.41,orders:1}   },
+      'PB': { '202601':{rev:0,orders:0},         '202602':{rev:426.62,orders:2},    '202603':{rev:515.7,orders:1},     '202604':{rev:0,orders:0}        },
+      'CE': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:184.21,orders:1},    '202604':{rev:399.8,orders:1}    },
+      'RR': { '202601':{rev:0,orders:0},         '202602':{rev:529.8,orders:1},     '202603':{rev:0,orders:0},         '202604':{rev:0,orders:0}        },
+      'AM': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:0,orders:0},         '202604':{rev:417.82,orders:1}   },
+      'RN': { '202601':{rev:0,orders:0},         '202602':{rev:193.91,orders:1},    '202603':{rev:189.91,orders:1},    '202604':{rev:0,orders:0}        },
+      'MA': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:279.9,orders:1},     '202604':{rev:0,orders:0}        },
+      'AL': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},         '202603':{rev:199.9,orders:1},     '202604':{rev:0,orders:0}        },
+      'PI': { '202601':{rev:0,orders:0},         '202602':{rev:193.91,orders:1},    '202603':{rev:0,orders:0},         '202604':{rev:0,orders:0}        },
+    },
   },
   {
     id: '120237822074150533', name: 'LAL Kit Wave · Est. Degradê',
@@ -154,6 +259,30 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'PB', rev:300,   orders:1   }, { state:'AL', rev:300,   orders:1   },
       { state:'RO', rev:300,   orders:1   }, { state:'RR', rev:300,   orders:1   },
     ],
+    byStateMonth: {
+      'RJ': { '202601':{rev:7274.57,orders:14}, '202602':{rev:10216.26,orders:25}, '202603':{rev:1274.65,orders:4},  '202604':{rev:0,orders:0} },
+      'SP': { '202601':{rev:6789.06,orders:20}, '202602':{rev:8935.1,orders:21},  '202603':{rev:284.91,orders:1},   '202604':{rev:0,orders:0} },
+      'MG': { '202601':{rev:869.72,orders:3},   '202602':{rev:2853.91,orders:9},  '202603':{rev:1932.23,orders:6},  '202604':{rev:0,orders:0} },
+      'GO': { '202601':{rev:1958.35,orders:5},  '202602':{rev:2520.58,orders:5},  '202603':{rev:875.72,orders:3},   '202604':{rev:0,orders:0} },
+      'RS': { '202601':{rev:1059.94,orders:2},  '202602':{rev:2827.45,orders:11}, '202603':{rev:902.29,orders:2},   '202604':{rev:0,orders:0} },
+      'PE': { '202601':{rev:739.4,orders:2},    '202602':{rev:1924.06,orders:4},  '202603':{rev:1340.35,orders:2},  '202604':{rev:0,orders:0} },
+      'BA': { '202601':{rev:2001.32,orders:5},  '202602':{rev:850.61,orders:3},   '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'PR': { '202601':{rev:1094.75,orders:4},  '202602':{rev:1602.12,orders:3},  '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'DF': { '202601':{rev:229.9,orders:1},    '202602':{rev:2098.3,orders:4},   '202603':{rev:218.41,orders:1},   '202604':{rev:0,orders:0} },
+      'MT': { '202601':{rev:1377.12,orders:4},  '202602':{rev:0,orders:0},        '202603':{rev:1134.5,orders:2},   '202604':{rev:0,orders:0} },
+      'SC': { '202601':{rev:554.7,orders:2},    '202602':{rev:994.2,orders:3},    '202603':{rev:324.57,orders:2},   '202604':{rev:0,orders:0} },
+      'CE': { '202601':{rev:575.82,orders:2},   '202602':{rev:590.81,orders:2},   '202603':{rev:599.8,orders:1},    '202604':{rev:0,orders:0} },
+      'ES': { '202601':{rev:1738.4,orders:3},   '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'AM': { '202601':{rev:574.71,orders:2},   '202602':{rev:554.3,orders:1},    '202603':{rev:584.81,orders:2},   '202604':{rev:0,orders:0} },
+      'MS': { '202601':{rev:0,orders:0},         '202602':{rev:651.64,orders:2},   '202603':{rev:189.91,orders:1},   '202604':{rev:0,orders:0} },
+      'RN': { '202601':{rev:0,orders:0},         '202602':{rev:599.8,orders:2},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'PA': { '202601':{rev:0,orders:0},         '202602':{rev:290.91,orders:1},   '202603':{rev:276.37,orders:1},   '202604':{rev:0,orders:0} },
+      'SE': { '202601':{rev:399.8,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'PB': { '202601':{rev:299.9,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'AL': { '202601':{rev:299.9,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'RO': { '202601':{rev:0,orders:0},         '202602':{rev:299.9,orders:1},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+      'RR': { '202601':{rev:0,orders:0},         '202602':{rev:299.9,orders:1},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0} },
+    },
   },
   {
     id: '120236241962090533', name: 'RMKT Toalha Azul · Multi-formato',
@@ -177,6 +306,28 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'SE', rev:230,   orders:1   }, { state:'AM', rev:230,   orders:1   },
       { state:'RO', rev:194,   orders:1   }, { state:'MT', rev:175,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:7894.54,orders:27}, '202602':{rev:6141.61,orders:19}, '202603':{rev:3173.13,orders:13}, '202604':{rev:5327.42,orders:16} },
+      'RJ': { '202601':{rev:3691.71,orders:14}, '202602':{rev:3186.25,orders:9},  '202603':{rev:3128.13,orders:11}, '202604':{rev:2856.13,orders:9}  },
+      'MG': { '202601':{rev:1811.13,orders:5},  '202602':{rev:1637.12,orders:6},  '202603':{rev:1380.44,orders:4},  '202604':{rev:2106.92,orders:5}  },
+      'RS': { '202601':{rev:1276.32,orders:4},  '202602':{rev:334.81,orders:1},   '202603':{rev:2741.98,orders:7},  '202604':{rev:202.65,orders:1}   },
+      'BA': { '202601':{rev:1269.2,orders:4},   '202602':{rev:1121.54,orders:4},  '202603':{rev:927.57,orders:4},   '202604':{rev:595.68,orders:3}   },
+      'PR': { '202601':{rev:702.46,orders:1},   '202602':{rev:2101.73,orders:6},  '202603':{rev:591.7,orders:3},    '202604':{rev:0,orders:0}        },
+      'SC': { '202601':{rev:1120.51,orders:3},  '202602':{rev:854.55,orders:2},   '202603':{rev:664.19,orders:1},   '202604':{rev:265.73,orders:1}   },
+      'PE': { '202601':{rev:1944.52,orders:4},  '202602':{rev:941.17,orders:3},   '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'DF': { '202601':{rev:657.74,orders:2},   '202602':{rev:612.15,orders:2},   '202603':{rev:779.61,orders:2},   '202604':{rev:0,orders:0}        },
+      'GO': { '202601':{rev:818.51,orders:2},   '202602':{rev:431.72,orders:2},   '202603':{rev:0,orders:0},        '202604':{rev:591.68,orders:2}   },
+      'ES': { '202601':{rev:1132.91,orders:3},  '202602':{rev:289.39,orders:1},   '202603':{rev:375.07,orders:1},   '202604':{rev:0,orders:0}        },
+      'CE': { '202601':{rev:284.91,orders:1},   '202602':{rev:639.7,orders:1},    '202603':{rev:768.88,orders:3},   '202604':{rev:0,orders:0}        },
+      'MA': { '202601':{rev:829.7,orders:3},    '202602':{rev:229.9,orders:1},    '202603':{rev:299.9,orders:1},    '202604':{rev:0,orders:0}        },
+      'RN': { '202601':{rev:0,orders:0},         '202602':{rev:515.26,orders:1},   '202603':{rev:0,orders:0},        '202604':{rev:379.82,orders:1}   },
+      'PA': { '202601':{rev:426.61,orders:1},   '202602':{rev:299.9,orders:1},    '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'AL': { '202601':{rev:284.91,orders:1},   '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:193.91,orders:1}   },
+      'SE': { '202601':{rev:229.9,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'AM': { '202601':{rev:229.9,orders:1},    '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'RO': { '202601':{rev:193.91,orders:1},   '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},        '202604':{rev:0,orders:0}        },
+      'MT': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},        '202603':{rev:175.0,orders:1},    '202604':{rev:0,orders:0}        },
+    },
   },
   {
     id: 'WG_CONVERSÃO_KIT_WAVE', name: 'WG Conversão · Kit Wave',
@@ -201,6 +352,30 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'PB', rev:304,   orders:1   }, { state:'AM', rev:291,   orders:1   },
       { state:'SE', rev:280,   orders:1   }, { state:'AP', rev:209,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:10810.46,orders:37}, '202604':{rev:8276.09,orders:22} },
+      'RJ': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:5379.56,orders:19},  '202604':{rev:0,orders:0}        },
+      'BA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2865.8,orders:7},    '202604':{rev:1677.33,orders:4}  },
+      'CE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:3151.24,orders:8},   '202604':{rev:1179.0,orders:3}   },
+      'PR': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2533.5,orders:8},    '202604':{rev:1255.76,orders:5}  },
+      'MG': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:3560.5,orders:10},   '202604':{rev:0,orders:0}        },
+      'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2027.26,orders:6},   '202604':{rev:1501.91,orders:5}  },
+      'MT': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2095.3,orders:3},    '202604':{rev:460.58,orders:1}   },
+      'RS': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1562.06,orders:5},   '202604':{rev:791.05,orders:4}   },
+      'DF': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1002.26,orders:3},   '202604':{rev:1117.65,orders:4}  },
+      'GO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1486.24,orders:4},   '202604':{rev:616.72,orders:2}   },
+      'SC': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:598.23,orders:2},    '202604':{rev:1175.83,orders:4}  },
+      'MS': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:751.38,orders:3},    '202604':{rev:279.9,orders:1}    },
+      'PA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:276.37,orders:1},    '202604':{rev:753.95,orders:2}   },
+      'MA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:265.91,orders:1},    '202604':{rev:588.73,orders:1}   },
+      'RN': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:801.37,orders:3},    '202604':{rev:0,orders:0}        },
+      'RO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:560.23,orders:1},    '202604':{rev:0,orders:0}        },
+      'ES': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:398.82,orders:2},    '202604':{rev:0,orders:0}        },
+      'PB': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:303.66,orders:1},    '202604':{rev:0,orders:0}        },
+      'AM': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:290.91,orders:1},    '202604':{rev:0,orders:0}        },
+      'SE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:279.9,orders:1}    },
+      'AP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:208.91,orders:1}   },
+    },
   },
   {
     id: '120240276217390533', name: 'Essence VD · Enganado (Variante B)',
@@ -223,6 +398,25 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'PI', rev:315,   orders:1   }, { state:'PB', rev:194,   orders:1   },
       { state:'SC', rev:194,   orders:1   },
     ],
+    byStateMonth: {
+      'RJ': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:15281.87,orders:50}, '202604':{rev:10277.57,orders:37} },
+      'SP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:9458.75,orders:35},  '202604':{rev:3333.2,orders:12}   },
+      'MG': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2019.81,orders:7},   '202604':{rev:2942.22,orders:9}   },
+      'ES': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1555.55,orders:5},   '202604':{rev:1471.87,orders:3}   },
+      'RS': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2126.31,orders:3},   '202604':{rev:279.9,orders:1}     },
+      'BA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1423.64,orders:3},   '202604':{rev:872.8,orders:2}     },
+      'PR': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:549.9,orders:3},     '202604':{rev:425.71,orders:2}    },
+      'MT': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:180.41,orders:1},    '202604':{rev:611.73,orders:2}    },
+      'PA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:114.9,orders:1},     '202604':{rev:552.64,orders:1}    },
+      'MA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:409.8,orders:2},     '202604':{rev:170.82,orders:1}    },
+      'DF': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:560.23,orders:1},    '202604':{rev:0,orders:0}         },
+      'GO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:514.7,orders:1},     '202604':{rev:0,orders:0}         },
+      'CE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:399.8,orders:1}     },
+      'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:193.91,orders:1},    '202604':{rev:189.91,orders:1}    },
+      'PI': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:314.8,orders:1},     '202604':{rev:0,orders:0}         },
+      'PB': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:193.91,orders:1}    },
+      'SC': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:193.91,orders:1}    },
+    },
   },
   {
     id: 'WG_CONVERSÃO_ANO_NOVO', name: 'WG Conversão · Ano Novo',
@@ -245,6 +439,26 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'SE', rev:798,   orders:1   }, { state:'RO', rev:393,   orders:1   },
       { state:'PA', rev:266,   orders:1   }, { state:'MT', rev:218,   orders:1   },
     ],
+    byStateMonth: {
+      'SP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:10912.83,orders:41}, '202604':{rev:8242.95,orders:26} },
+      'MG': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:4255.54,orders:10},  '202604':{rev:3122.99,orders:9}  },
+      'RJ': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2408.74,orders:10},  '202604':{rev:2162.85,orders:8}  },
+      'RS': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1953.38,orders:7},   '202604':{rev:1880.8,orders:4}   },
+      'SC': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:918.81,orders:3},    '202604':{rev:1786.97,orders:5}  },
+      'BA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:655.27,orders:3},    '202604':{rev:1929.86,orders:6}  },
+      'DF': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1888.14,orders:6},   '202604':{rev:507.53,orders:1}   },
+      'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1002.46,orders:4},   '202604':{rev:949.55,orders:2}   },
+      'ES': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1210.3,orders:4},    '202604':{rev:624.46,orders:3}   },
+      'PR': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:760.55,orders:4},    '202604':{rev:926.26,orders:2}   },
+      'PB': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:189.9,orders:1},     '202604':{rev:1347.94,orders:2}  },
+      'GO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:661.47,orders:3},    '202604':{rev:558.35,orders:3}   },
+      'CE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:743.27,orders:3},    '202604':{rev:189.91,orders:1}   },
+      'MA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:276.37,orders:1},    '202604':{rev:652.58,orders:2}   },
+      'SE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:797.64,orders:1},    '202604':{rev:0,orders:0}        },
+      'RO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:392.86,orders:1},    '202604':{rev:0,orders:0}        },
+      'PA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:265.91,orders:1}   },
+      'MT': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:218.41,orders:1}   },
+    },
   },
   {
     id: '120240276183270533', name: 'Essence VD · Enganado (Variante C)',
@@ -266,6 +480,23 @@ const CAMPAIGNS: CampaignRow[] = [
       { state:'PR', rev:268,   orders:2   }, { state:'PE', rev:200,   orders:1   },
       { state:'SC', rev:184,   orders:1   },
     ],
+    byStateMonth: {
+      'MG': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:15600.04,orders:44}, '202604':{rev:5501.52,orders:20} },
+      'SP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:9543.9,orders:31},   '202604':{rev:4340.63,orders:12} },
+      'BA': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:2611.15,orders:4},   '202604':{rev:2768.54,orders:2}  },
+      'RJ': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:4403.84,orders:13},  '202604':{rev:845.75,orders:4}   },
+      'GO': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:1166.0,orders:4},    '202604':{rev:189.91,orders:1}   },
+      'ES': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:859.79,orders:3},    '202604':{rev:0,orders:0}        },
+      'PB': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:295.66,orders:1},    '202604':{rev:514.7,orders:1}    },
+      'RS': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:599.7,orders:1},     '202604':{rev:184.22,orders:1}   },
+      'AM': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:189.91,orders:1},    '202604':{rev:507.98,orders:1}   },
+      'DF': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:599.7,orders:2},     '202604':{rev:0,orders:0}        },
+      'CE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:569.73,orders:1},    '202604':{rev:0,orders:0}        },
+      'MT': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:489.47,orders:2},    '202604':{rev:0,orders:0}        },
+      'PR': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:267.55,orders:2},    '202604':{rev:0,orders:0}        },
+      'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:199.9,orders:1}    },
+      'SC': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:184.21,orders:1},    '202604':{rev:0,orders:0}        },
+    },
   },
 ];
 
@@ -497,7 +728,15 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
               const ticket = c.data.orders > 0 ? Math.round(c.data.rev / c.data.orders) : 0;
               const maxMonthRev = Math.max(...MONTHS_ORDER.map(m => c.months[m]?.rev || 0));
               const isExpanded = expandedCamp === c.id;
-              const maxStateRev = c.byState[0]?.rev || 1;
+              const stateRows = activePeriod === 'geral'
+                ? c.byState.map(s => ({ state: s.state, rev: s.rev, orders: s.orders }))
+                : Object.entries(c.byStateMonth ?? {})
+                    .map(([st, months]) => ({ state: st, rev: months[activePeriod]?.rev ?? 0, orders: months[activePeriod]?.orders ?? 0 }))
+                    .filter(s => s.rev > 0)
+                    .sort((a, b) => b.rev - a.rev);
+              if (activePeriod === 'geral') stateRows.sort((a, b) => b.rev - a.rev);
+              const maxSRev = stateRows[0]?.rev || 1;
+              const statePeriodLabel = activePeriod === 'geral' ? 'Jan–Abr 2026' : MONTH_TOTALS[activePeriod].label + ' 2026';
               return (
                 <div key={c.id} style={{ borderBottom: idx < filteredCampaigns.length-1 ? `1px solid ${border}` : 'none' }}>
                   {/* linha principal — clicável */}
@@ -555,31 +794,44 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
                       padding: '16px 24px 20px 52px',
                     }}>
                       <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.15em', textTransform:'uppercase', color:'#2563eb', marginBottom:12 }}>
-                        📍 Receita por Estado · Jan–Abr 2026 (todos os períodos)
+                        📍 Receita por Estado · {statePeriodLabel}
                       </div>
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
-                        {c.byState.map((s, si) => {
-                          const pct = (s.rev / maxStateRev) * 100;
-                          const stateTicket = s.orders > 0 ? Math.round(s.rev / s.orders) : 0;
-                          return (
-                            <div key={s.state} style={{
-                              background: isDark ? '#0f172a' : '#fff',
-                              border: `1px solid ${isDark ? '#1e2a4a' : '#dbeafe'}`,
-                              borderRadius:10, padding:'10px 12px',
-                            }}>
-                              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-                                <span style={{ fontSize:11, fontWeight:800, color:text }}>{s.state}</span>
-                                <span style={{ fontSize:9, fontWeight:700, color:muted }}>#{si+1}</span>
+                      {stateRows.length === 0 ? (
+                        <div style={{ fontSize:12, color:muted }}>Sem dados para este período.</div>
+                      ) : (
+                        <div style={{ border:`1px solid ${isDark?'#1e2a4a':'#dbeafe'}`, borderRadius:12, overflow:'hidden' }}>
+                          <div style={{ display:'grid', gridTemplateColumns:'28px 60px 1fr 160px 70px 90px', gap:12, padding:'8px 16px', background: isDark?'#0f172a':'#eff6ff', borderBottom:`1px solid ${isDark?'#1e2a4a':'#dbeafe'}` }}>
+                            {['#','Estado','Participação','Receita','Pedidos','Ticket'].map((h, hi) => (
+                              <div key={h} style={{ fontSize:9, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#2563eb', textAlign: hi >= 3 ? 'right' : 'left' }}>{h}</div>
+                            ))}
+                          </div>
+                          {stateRows.map((s, si) => {
+                            const sPct = (s.rev / maxSRev) * 100;
+                            const sTicket = s.orders > 0 ? s.rev / s.orders : 0;
+                            return (
+                              <div key={s.state} style={{
+                                display:'grid', gridTemplateColumns:'28px 60px 1fr 160px 70px 90px', gap:12, alignItems:'center',
+                                padding:'9px 16px',
+                                borderBottom: si < stateRows.length-1 ? `1px solid ${isDark?'#1a2240':'#e8f0fe'}` : 'none',
+                                background: si === 0 ? (isDark?'rgba(251,191,36,0.04)':'#fffdf0') : 'transparent',
+                              }}>
+                                <div style={{ fontSize:10, fontWeight:700, color:muted, textAlign:'center' }}>{si+1}</div>
+                                <div style={{ fontSize:12, fontWeight:700, color:text }}>{s.state}</div>
+                                <div style={{ height:6, background: isDark?'#1e2a3a':'#e2e8f0', borderRadius:100, overflow:'hidden' }}>
+                                  <div style={{ width:`${sPct}%`, height:'100%', background:'#3b82f6', borderRadius:100 }} />
+                                </div>
+                                <div style={{ fontSize:12, fontWeight:800, color:text, textAlign:'right', fontFamily:'monospace' }}>
+                                  R$ {s.rev.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })}
+                                </div>
+                                <div style={{ fontSize:12, fontWeight:600, color:'#2563eb', textAlign:'right' }}>{s.orders}</div>
+                                <div style={{ fontSize:12, fontWeight:700, color:'#10b981', textAlign:'right' }}>
+                                  R$ {sTicket.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })}
+                                </div>
                               </div>
-                              <div style={{ height:4, background: isDark?'#1e2a3a':'#e2e8f0', borderRadius:100, overflow:'hidden', marginBottom:6 }}>
-                                <div style={{ width:`${pct}%`, height:'100%', background:'#3b82f6', borderRadius:100 }} />
-                              </div>
-                              <div style={{ fontSize:12, fontWeight:800, color:text }}>{fmtR(s.rev)}</div>
-                              <div style={{ fontSize:10, color:muted, marginTop:2 }}>{s.orders} ped · R${stateTicket} ticket</div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
