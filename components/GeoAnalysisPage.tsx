@@ -18,6 +18,7 @@ interface StateRow {
   rev: number;
   orders: number;
   ticket: number;
+  months: Record<string, { rev: number; orders: number }>;
 }
 
 // ─── Dados estáticos (GA4 · Meta Ads · Jan–Abr 2026) ─────────────────────────
@@ -269,21 +270,33 @@ const CAMPAIGNS: CampaignRow[] = [
 ];
 
 const STATES: StateRow[] = [
-  { name: 'São Paulo',        abbr: 'SP', rev: 328165, orders: 1072, ticket: 306 },
-  { name: 'Rio de Janeiro',   abbr: 'RJ', rev: 153314, orders: 479,  ticket: 320 },
-  { name: 'Minas Gerais',     abbr: 'MG', rev: 118593, orders: 356,  ticket: 333 },
-  { name: 'Bahia',            abbr: 'BA', rev: 56442,  orders: 142,  ticket: 397 },
-  { name: 'Rio Grande do Sul',abbr: 'RS', rev: 51854,  orders: 174,  ticket: 298 },
-  { name: 'Pernambuco',       abbr: 'PE', rev: 42776,  orders: 112,  ticket: 382 },
-  { name: 'Paraná',           abbr: 'PR', rev: 38609,  orders: 128,  ticket: 302 },
-  { name: 'Santa Catarina',   abbr: 'SC', rev: 38293,  orders: 121,  ticket: 316 },
-  { name: 'Distrito Federal', abbr: 'DF', rev: 32467,  orders: 89,   ticket: 365 },
-  { name: 'Goiás',            abbr: 'GO', rev: 31159,  orders: 92,   ticket: 339 },
-  { name: 'Espírito Santo',   abbr: 'ES', rev: 28241,  orders: 84,   ticket: 336 },
-  { name: 'Ceará',            abbr: 'CE', rev: 25901,  orders: 67,   ticket: 387 },
-  { name: 'Mato Grosso',      abbr: 'MT', rev: 17885,  orders: 48,   ticket: 373 },
-  { name: 'Pará',             abbr: 'PA', rev: 12393,  orders: 34,   ticket: 365 },
-  { name: 'Amazonas',         abbr: 'AM', rev: 11120,  orders: 24,   ticket: 463 },
+  { name: 'São Paulo',           abbr: 'SP', rev: 328165, orders: 1072, ticket: 306, months: { '202601':{rev:77720,orders:243}, '202602':{rev:79193,orders:242}, '202603':{rev:99019,orders:357}, '202604':{rev:75095,orders:236} } },
+  { name: 'Rio de Janeiro',      abbr: 'RJ', rev: 153314, orders: 479,  ticket: 320, months: { '202601':{rev:33133,orders:92},  '202602':{rev:34709,orders:106}, '202603':{rev:49199,orders:168}, '202604':{rev:36273,orders:113} } },
+  { name: 'Minas Gerais',        abbr: 'MG', rev: 118593, orders: 356,  ticket: 333, months: { '202601':{rev:22390,orders:62},  '202602':{rev:22939,orders:76},  '202603':{rev:46629,orders:135}, '202604':{rev:27017,orders:85}  } },
+  { name: 'Bahia',               abbr: 'BA', rev: 56442,  orders: 142,  ticket: 397, months: { '202601':{rev:15033,orders:35},  '202602':{rev:8106,orders:26},   '202603':{rev:16139,orders:42},  '202604':{rev:17444,orders:40}  } },
+  { name: 'Rio Grande do Sul',   abbr: 'RS', rev: 51854,  orders: 174,  ticket: 298, months: { '202601':{rev:9838,orders:31},   '202602':{rev:10180,orders:38},  '202603':{rev:21189,orders:63},  '202604':{rev:11229,orders:43}  } },
+  { name: 'Pernambuco',          abbr: 'PE', rev: 42776,  orders: 112,  ticket: 382, months: { '202601':{rev:9282,orders:27},   '202602':{rev:10568,orders:26},  '202603':{rev:11847,orders:32},  '202604':{rev:11079,orders:27}  } },
+  { name: 'Paraná',              abbr: 'PR', rev: 38609,  orders: 128,  ticket: 302, months: { '202601':{rev:7236,orders:24},   '202602':{rev:7577,orders:25},   '202603':{rev:14905,orders:51},  '202604':{rev:8891,orders:28}   } },
+  { name: 'Santa Catarina',      abbr: 'SC', rev: 38293,  orders: 121,  ticket: 316, months: { '202601':{rev:9594,orders:26},   '202602':{rev:7806,orders:26},   '202603':{rev:12371,orders:40},  '202604':{rev:9711,orders:34}   } },
+  { name: 'Distrito Federal',    abbr: 'DF', rev: 32467,  orders: 89,   ticket: 365, months: { '202601':{rev:9416,orders:16},   '202602':{rev:7764,orders:24},   '202603':{rev:9909,orders:35},   '202604':{rev:5811,orders:16}   } },
+  { name: 'Goiás',               abbr: 'GO', rev: 31159,  orders: 92,   ticket: 339, months: { '202601':{rev:7229,orders:20},   '202602':{rev:5609,orders:16},   '202603':{rev:10959,orders:36},  '202604':{rev:7547,orders:21}   } },
+  { name: 'Espírito Santo',      abbr: 'ES', rev: 28241,  orders: 84,   ticket: 336, months: { '202601':{rev:8584,orders:23},   '202602':{rev:3473,orders:11},   '202603':{rev:9523,orders:31},   '202604':{rev:6662,orders:19}   } },
+  { name: 'Ceará',               abbr: 'CE', rev: 25901,  orders: 67,   ticket: 387, months: { '202601':{rev:2355,orders:9},    '202602':{rev:3999,orders:11},   '202603':{rev:12754,orders:31},  '202604':{rev:6793,orders:16}   } },
+  { name: 'Mato Grosso',         abbr: 'MT', rev: 17885,  orders: 48,   ticket: 373, months: { '202601':{rev:5870,orders:11},   '202602':{rev:3619,orders:13},   '202603':{rev:4488,orders:11},   '202604':{rev:3908,orders:13}   } },
+  { name: 'Pará',                abbr: 'PA', rev: 12393,  orders: 34,   ticket: 364, months: { '202601':{rev:1972,orders:6},    '202602':{rev:2321,orders:7},    '202603':{rev:3369,orders:8},    '202604':{rev:4730,orders:13}   } },
+  { name: 'Amazonas',            abbr: 'AM', rev: 11120,  orders: 24,   ticket: 463, months: { '202601':{rev:2544,orders:7},    '202602':{rev:2967,orders:4},    '202603':{rev:2893,orders:6},    '202604':{rev:2716,orders:7}    } },
+  { name: 'Maranhão',            abbr: 'MA', rev: 10476,  orders: 29,   ticket: 361, months: { '202601':{rev:2829,orders:6},    '202602':{rev:2225,orders:6},    '202603':{rev:2665,orders:9},    '202604':{rev:2756,orders:8}    } },
+  { name: 'Paraíba',             abbr: 'PB', rev: 10258,  orders: 28,   ticket: 366, months: { '202601':{rev:1271,orders:4},    '202602':{rev:2317,orders:8},    '202603':{rev:3744,orders:10},   '202604':{rev:2925,orders:6}    } },
+  { name: 'Mato Grosso do Sul',  abbr: 'MS', rev: 7650,   orders: 22,   ticket: 348, months: { '202601':{rev:511,orders:2},     '202602':{rev:2704,orders:7},    '202603':{rev:3562,orders:10},   '202604':{rev:1253,orders:4}    } },
+  { name: 'Rio Grande do Norte', abbr: 'RN', rev: 5800,   orders: 18,   ticket: 322, months: { '202601':{rev:1100,orders:3},    '202602':{rev:1704,orders:5},    '202603':{rev:2317,orders:7},    '202604':{rev:680,orders:3}     } },
+  { name: 'Alagoas',             abbr: 'AL', rev: 5721,   orders: 15,   ticket: 381, months: { '202601':{rev:3511,orders:7},    '202602':{rev:1012,orders:3},    '202603':{rev:820,orders:3},     '202604':{rev:378,orders:2}     } },
+  { name: 'Sergipe',             abbr: 'SE', rev: 5337,   orders: 16,   ticket: 334, months: { '202601':{rev:1711,orders:5},    '202602':{rev:1191,orders:3},    '202603':{rev:1162,orders:3},    '202604':{rev:1273,orders:5}    } },
+  { name: 'Piauí',               abbr: 'PI', rev: 3874,   orders: 10,   ticket: 387, months: { '202601':{rev:589,orders:1},     '202602':{rev:194,orders:1},     '202603':{rev:1712,orders:6},    '202604':{rev:1379,orders:2}    } },
+  { name: 'Rondônia',            abbr: 'RO', rev: 2880,   orders: 8,    ticket: 360, months: { '202601':{rev:397,orders:2},     '202602':{rev:733,orders:3},     '202603':{rev:1751,orders:3},    '202604':{rev:0,orders:0}       } },
+  { name: 'Tocantins',           abbr: 'TO', rev: 2252,   orders: 6,    ticket: 375, months: { '202601':{rev:0,orders:0},       '202602':{rev:335,orders:1},     '202603':{rev:1705,orders:4},    '202604':{rev:212,orders:1}     } },
+  { name: 'Roraima',             abbr: 'RR', rev: 1208,   orders: 4,    ticket: 302, months: { '202601':{rev:0,orders:0},       '202602':{rev:1014,orders:3},    '202603':{rev:194,orders:1},     '202604':{rev:0,orders:0}       } },
+  { name: 'Acre',                abbr: 'AC', rev: 589,    orders: 3,    ticket: 196, months: { '202601':{rev:0,orders:0},       '202602':{rev:0,orders:0},       '202603':{rev:380,orders:2},     '202604':{rev:209,orders:1}     } },
+  { name: 'Amapá',               abbr: 'AP', rev: 399,    orders: 2,    ticket: 199, months: { '202601':{rev:0,orders:0},       '202602':{rev:0,orders:0},       '202603':{rev:190,orders:1},     '202604':{rev:209,orders:1}     } },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -323,6 +336,22 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
       : (c.months[activePeriod] || { rev: 0, orders: 0, sessions: 0 });
     return { ...c, data };
   }).filter(c => c.data.orders > 0).sort((a, b) => b.data.rev - a.data.rev);
+
+  // Estados filtrados pelo período
+  const filteredStates = STATES
+    .map(s => {
+      const rev    = activePeriod === 'geral' ? s.rev    : (s.months[activePeriod]?.rev    ?? 0);
+      const orders = activePeriod === 'geral' ? s.orders : (s.months[activePeriod]?.orders ?? 0);
+      const ticket = orders > 0 ? Math.round(rev / orders) : 0;
+      return { ...s, rev, orders, ticket };
+    })
+    .filter(s => s.rev > 0)
+    .sort((a, b) => b.rev - a.rev);
+
+  const statesTotalRev = filteredStates.reduce((acc, s) => acc + s.rev, 0);
+  const statesPeriodLabel = activePeriod === 'geral'
+    ? 'Jan–Abr 2026'
+    : MONTH_TOTALS[activePeriod].label + ' 2026';
 
   const bg = isDark ? '#1a1a2e' : '#f8fafc';
   const card = isDark ? '#1e2235' : '#ffffff';
@@ -568,22 +597,14 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
         {/* ── ABA: ESTADOS ── */}
         {activeTab === 'estados' && (
           <div>
-            {/* aviso período */}
-            {activePeriod !== 'geral' && (
-              <div style={{ background:'#fffbeb', border:'1px solid #fcd34d', borderRadius:12, padding:'10px 16px', marginBottom:16, fontSize:12, color:'#92400e', display:'flex', gap:8, alignItems:'center' }}>
-                <span>ℹ️</span>
-                <span>O ranking de estados exibe dados consolidados de <strong>Jan–Abr 2026</strong>. Para quebra por mês por estado, aguardar integração Kondado em andamento.</span>
-              </div>
-            )}
-
             <div style={{ background:card, border:`1px solid ${border}`, borderRadius:24, overflow:'hidden' }}>
               <div style={{ padding:'20px 24px 16px', borderBottom:`1px solid ${border}`, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div>
                   <div style={{ fontSize:16, fontWeight:900, color:text }}>Receita por Estado · Meta Ads</div>
-                  <div style={{ fontSize:11, color:muted, marginTop:2 }}>Jan–Abr 2026 · 15 estados com maior receita atribuída</div>
+                  <div style={{ fontSize:11, color:muted, marginTop:2 }}>{statesPeriodLabel} · {filteredStates.length} estados com receita atribuída</div>
                 </div>
                 <span style={{ background:'#f0fdf4', color:'#16a34a', fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', padding:'5px 14px', borderRadius:100 }}>
-                  R$ 892,6k atribuído
+                  {fmtR(statesTotalRev)} atribuído
                 </span>
               </div>
 
@@ -594,8 +615,8 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
                 ))}
               </div>
 
-              {STATES.map((s, idx) => {
-                const pct = (s.rev / STATES[0].rev) * 100;
+              {filteredStates.map((s, idx) => {
+                const pct = (s.rev / filteredStates[0].rev) * 100;
                 const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : String(idx+1);
                 const barColor = idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#ec4899' : '#3b82f6';
                 const isHighTicket = s.ticket > 360;
@@ -603,7 +624,7 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
                   <div key={s.abbr} style={{
                     display:'grid', gridTemplateColumns:'28px 120px 1fr 100px 70px 80px', gap:12, alignItems:'center',
                     padding:'12px 24px',
-                    borderBottom: idx < STATES.length-1 ? `1px solid ${border}` : 'none',
+                    borderBottom: idx < filteredStates.length-1 ? `1px solid ${border}` : 'none',
                     background: idx < 3 ? (isDark ? 'rgba(255,255,255,0.02)' : (idx===0?'#fffbeb':idx===1?'#f8fafc':'#fdf4ff')) : 'transparent',
                   }}>
                     <div style={{ fontSize:14, textAlign:'center' }}>{medal}</div>
