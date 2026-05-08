@@ -34,7 +34,7 @@ const MONTH_TOTALS: Record<string, MonthEntry & { label: string }> = {
 
 const CAMPAIGNS: CampaignRow[] = [
   {
-    id: '120216037685880533', name: 'Essence VD · Você Está Sendo Enganado',
+    id: '120216037685880533', name: 'WG_Conversão | Advantage | Essence | Brasil',
     src: 'meta / cpc',
     total: { rev: 209925, orders: 630, sessions: 62178 },
     months: {
@@ -88,7 +88,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120237824657680533', name: 'LAL Jogo Wave · Est. Branca',
+    id: '120237824657680533', name: 'WG_Conversão | Wave | Estático',
     src: 'meta / cpc',
     total: { rev: 106632, orders: 319, sessions: 17389 },
     months: {
@@ -139,7 +139,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120233362899670533', name: 'Catálogo DPA 01 · Remarketing',
+    id: '120233362899670533', name: 'WG_Conversão | DPA',
     src: 'meta / cpc',
     total: { rev: 105824, orders: 361, sessions: 28342 },
     months: {
@@ -189,7 +189,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120209904601020533', name: 'Wave VD · 63 Centavos',
+    id: '120209904601020533', name: 'WG_Conversão | Wave | Vídeo',
     src: 'meta / cpc',
     total: { rev: 94184, orders: 281, sessions: 27547 },
     months: {
@@ -237,7 +237,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120237822074150533', name: 'LAL Kit Wave · Est. Degradê',
+    id: '120237822074150533', name: 'WG_CONVERSÃO_KIT_WAVE_Brasil',
     src: 'meta / cpc',
     total: { rev: 75886, orders: 198, sessions: 9521 },
     months: {
@@ -285,7 +285,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120236241962090533', name: 'RMKT Toalha Azul · Multi-formato',
+    id: '120236241962090533', name: 'WG_Conversão | Produtos Diversos | RJ, MG E BSB',
     src: 'meta / cpc',
     total: { rev: 71874, orders: 228, sessions: 10494 },
     months: {
@@ -330,7 +330,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: 'WG_CONVERSÃO_KIT_WAVE', name: 'WG Conversão · Kit Wave',
+    id: 'WG_CONVERSÃO_KIT_WAVE', name: 'WG_CONVERSÃO_KIT_WAVE',
     src: 'facebook / paid_social',
     total: { rev: 60732, orders: 184, sessions: 9286 },
     months: {
@@ -378,7 +378,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120240276217390533', name: 'Essence VD · Enganado (Variante B)',
+    id: '120240276217390533', name: 'WG_Conversão | Advantage | Essence | Rio de Janeiro',
     src: 'meta / cpc',
     total: { rev: 56621, orders: 188, sessions: 17531 },
     months: {
@@ -419,7 +419,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: 'WG_CONVERSÃO_ANO_NOVO', name: 'WG Conversão · Ano Novo',
+    id: 'WG_CONVERSÃO_ANO_NOVO', name: 'WG_CONVERSÃO_ANO_NOVO',
     src: 'facebook / paid_social',
     total: { rev: 53874, orders: 176, sessions: 11182 },
     months: {
@@ -461,7 +461,7 @@ const CAMPAIGNS: CampaignRow[] = [
     },
   },
   {
-    id: '120240276183270533', name: 'Essence VD · Enganado (Variante C)',
+    id: '120240276183270533', name: 'WG_Conversão | Advantage | Essence | Minas Gerais',
     src: 'meta / cpc',
     total: { rev: 51239, orders: 151, sessions: 14701 },
     months: {
@@ -496,6 +496,66 @@ const CAMPAIGNS: CampaignRow[] = [
       'PR': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:267.55,orders:2},    '202604':{rev:0,orders:0}        },
       'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0},         '202604':{rev:199.9,orders:1}    },
       'SC': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:184.21,orders:1},    '202604':{rev:0,orders:0}        },
+    },
+  },
+  {
+    id: '120238302893590533', name: 'WG_Conversão | Segmentada | Essence | Brasil',
+    src: 'meta / cpc',
+    total: { rev: 15110, orders: 53, sessions: 6146 },
+    months: {
+      '202601': { rev: 4455,  orders: 17, sessions: 1281 },
+      '202602': { rev: 10072, orders: 33, sessions: 4319 },
+      '202603': { rev: 583,   orders: 3,  sessions: 545  },
+      '202604': { rev: 0,     orders: 0,  sessions: 1    },
+    },
+    byState: [
+      { state:'SP', rev:5665, orders:20 }, { state:'RJ', rev:2056, orders:8  },
+      { state:'MA', rev:1344, orders:2  }, { state:'MG', rev:1009, orders:4  },
+      { state:'MT', rev:894,  orders:3  }, { state:'BA', rev:766,  orders:3  },
+      { state:'PR', rev:433,  orders:2  }, { state:'AL', rev:418,  orders:1  },
+      { state:'PE', rev:380,  orders:1  }, { state:'SC', rev:378,  orders:2  },
+      { state:'PA', rev:300,  orders:1  }, { state:'PB', rev:262,  orders:1  },
+      { state:'AM', rev:213,  orders:1  }, { state:'GO', rev:213,  orders:1  },
+      { state:'RS', rev:209,  orders:1  }, { state:'ES', rev:190,  orders:1  },
+    ],
+    byStateMonth: {
+      'SP': { '202601':{rev:1884.00,orders:9},  '202602':{rev:3697.83,orders:10}, '202603':{rev:82.85,orders:1},   '202604':{rev:0,orders:0} },
+      'RJ': { '202601':{rev:1338.40,orders:4},  '202602':{rev:597.13,orders:3},   '202603':{rev:120.77,orders:1},  '202604':{rev:0,orders:0} },
+      'MA': { '202601':{rev:0,orders:0},         '202602':{rev:1344.34,orders:2},  '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'MG': { '202601':{rev:199.90,orders:1},   '202602':{rev:808.61,orders:3},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'MT': { '202601':{rev:0,orders:0},         '202602':{rev:894.20,orders:3},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'BA': { '202601':{rev:352.70,orders:1},   '202602':{rev:413.21,orders:2},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'PR': { '202601':{rev:0,orders:0},         '202602':{rev:433.21,orders:2},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'AL': { '202601':{rev:0,orders:0},         '202602':{rev:417.82,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'PE': { '202601':{rev:0,orders:0},         '202602':{rev:0,orders:0},        '202603':{rev:379.82,orders:1},  '202604':{rev:0,orders:0} },
+      'SC': { '202601':{rev:0,orders:0},         '202602':{rev:378.13,orders:2},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'PA': { '202601':{rev:299.90,orders:1},   '202602':{rev:0,orders:0},        '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'PB': { '202601':{rev:0,orders:0},         '202602':{rev:261.61,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'AM': { '202601':{rev:0,orders:0},         '202602':{rev:213.31,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'GO': { '202601':{rev:0,orders:0},         '202602':{rev:213.31,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'RS': { '202601':{rev:0,orders:0},         '202602':{rev:208.91,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+      'ES': { '202601':{rev:0,orders:0},         '202602':{rev:189.91,orders:1},   '202603':{rev:0,orders:0},       '202604':{rev:0,orders:0} },
+    },
+  },
+  {
+    id: '120242437450510533', name: 'WG_Conversão | Wave | Estático | BSB',
+    src: 'meta / cpc',
+    total: { rev: 2958, orders: 12, sessions: 0 },
+    months: {
+      '202601': { rev: 0,    orders: 0,  sessions: 0 },
+      '202602': { rev: 0,    orders: 0,  sessions: 0 },
+      '202603': { rev: 0,    orders: 0,  sessions: 0 },
+      '202604': { rev: 2958, orders: 12, sessions: 0 },
+    },
+    byState: [
+      { state:'SP', rev:1785, orders:5 }, { state:'MG', rev:403, orders:2 },
+      { state:'PE', rev:396,  orders:1 }, { state:'MT', rev:374, orders:2 },
+    ],
+    byStateMonth: {
+      'SP': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0}, '202604':{rev:1784.62,orders:5} },
+      'MG': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0}, '202604':{rev:402.63,orders:2}  },
+      'PE': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0}, '202604':{rev:396.08,orders:1}  },
+      'MT': { '202601':{rev:0,orders:0}, '202602':{rev:0,orders:0}, '202603':{rev:0,orders:0}, '202604':{rev:374.13,orders:2}  },
     },
   },
 ];
