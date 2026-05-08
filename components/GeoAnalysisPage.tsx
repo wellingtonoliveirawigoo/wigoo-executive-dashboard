@@ -687,7 +687,7 @@ const GeoAnalysisPage: React.FC<Props> = ({ theme }) => {
 
         {/* ── FILTRO DE PERÍODO ── */}
         <div style={{ display:'flex', gap:8, marginTop:28, marginBottom:24, flexWrap:'wrap' }}>
-          {([['geral','Geral 2026'],['202601','Janeiro'],['202602','Fevereiro'],['202603','Março'],['202604','Abril¹']] as const).map(([key, label]) => (
+          {([['geral','Geral 2026'],['202601','Janeiro'],['202602','Fevereiro'],['202603','Março'],['202604','Abril']] as const).map(([key, label]) => (
             <button key={key} onClick={() => setActivePeriod(key as any)}
               style={{
                 padding:'9px 20px', borderRadius:100, cursor:'pointer', fontSize:12, fontWeight:700,
