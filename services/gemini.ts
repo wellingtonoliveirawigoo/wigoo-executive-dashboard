@@ -163,22 +163,14 @@ async function urlToBase64(url: string): Promise<{ data: string, mimeType: strin
 // MOTORES DE IA (Via Fetch - Sem SDKs quebrados)
 // ============================================================================
 
-// 1. Motor OpenAI (Principal)
+// 1. Motor OpenAI (Principal) — via proxy /api/ai para evitar bloqueio CORS
 async function callOpenAI(prompt: string, images: { data: string, mimeType: string }[] = [], systemInstruction?: string): Promise<InsightResponse | null> {
-  // CORREÇÃO: Leitura direta e segura para o Vite
-  const apiKey = import.meta.env?.VITE_OPENAI_API_KEY || OPENAI_KEY;
-
-  if (!apiKey) {
-    console.warn("Wigoo AI - OpenAI API Key não configurada.");
-    return null;
-  }
-
   try {
     const messages = [
       { role: "system", content: systemInstruction || "Você é o motor Wigoo AI Hub." },
-      { 
-        role: "user", 
-        content: images.length > 0 
+      {
+        role: "user",
+        content: images.length > 0
           ? [
               { type: "text", text: prompt },
               ...images.map(img => ({
@@ -191,17 +183,14 @@ async function callOpenAI(prompt: string, images: { data: string, mimeType: stri
     ];
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("/api/ai", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "gpt-4o",
-        messages: messages,
+        messages,
         temperature: 0.1,
         max_tokens: 1500
       }),
@@ -211,8 +200,9 @@ async function callOpenAI(prompt: string, images: { data: string, mimeType: stri
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-       console.error("OpenAI Error:", await response.text());
-       return null;
+      const errText = await response.text().catch(() => '');
+      console.error("OpenAI Proxy Error:", response.status, errText);
+      return null;
     }
 
     const json = await response.json();
