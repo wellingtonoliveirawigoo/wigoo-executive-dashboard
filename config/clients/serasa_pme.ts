@@ -7,27 +7,54 @@ export const serasaPmeClient: ClientConfig = {
   datasetId: '447f0614-34ff-42e8-953f-ad12901616f8',
   workspaceId: '63631127-88f7-44b2-98e6-0b24bff00d60',
   measuresTable: 'MedidasCalculadas',
+  calendarTable: '',
   performanceDax: `
 // --- Período (injetado pelo frontend) ---
-VAR _Inicio = "{{START_DATE_FORMATTED}}"
-VAR _Fim = "{{END_DATE_FORMATTED}}"
+VAR _Inicio    = "{{START_DATE_FORMATTED}}"
+VAR _Fim       = "{{END_DATE_FORMATTED}}"
+VAR _StartDate = {{START_DATE_DAX}}
+VAR _EndDate   = {{END_DATE_DAX}}
 
-// ── Investimento por canal ──────────────────────────────────────────────────
-VAR _meta_inv   = CALCULATE(SUM('facebook_campaign_serasa_pme'[spend]))
-VAR _meta_imp   = CALCULATE(SUM('facebook_campaign_serasa_pme'[impressions]))
-VAR _meta_clk   = CALCULATE(SUM('facebook_campaign_serasa_pme'[clicks]))
+// ── Investimento por canal (filtro direto por data) ────────────────────────
+VAR _meta_inv   = CALCULATE(SUM('facebook_campaign_serasa_pme'[spend]),
+                    'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                    'facebook_campaign_serasa_pme'[metric_date] <= _EndDate)
+VAR _meta_imp   = CALCULATE(SUM('facebook_campaign_serasa_pme'[impressions]),
+                    'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                    'facebook_campaign_serasa_pme'[metric_date] <= _EndDate)
+VAR _meta_clk   = CALCULATE(SUM('facebook_campaign_serasa_pme'[clicks]),
+                    'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                    'facebook_campaign_serasa_pme'[metric_date] <= _EndDate)
 
-VAR _google_inv = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_cost]))
-VAR _google_imp = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_impressions]))
-VAR _google_clk = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_clicks]))
+VAR _google_inv = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_cost]),
+                    'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                    'googleads_campanha_serasa_pme'[segments_date] <= _EndDate)
+VAR _google_imp = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_impressions]),
+                    'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                    'googleads_campanha_serasa_pme'[segments_date] <= _EndDate)
+VAR _google_clk = CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_clicks]),
+                    'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                    'googleads_campanha_serasa_pme'[segments_date] <= _EndDate)
 
-VAR _tiktok_inv = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[spend]))
-VAR _tiktok_imp = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[impressions]))
-VAR _tiktok_clk = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[clicks]))
+VAR _tiktok_inv = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[spend]),
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate)
+VAR _tiktok_imp = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[impressions]),
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate)
+VAR _tiktok_clk = CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[clicks]),
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate)
 
-VAR _ms_inv     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[spend]))
-VAR _ms_imp     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[impressions]))
-VAR _ms_clk     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[clicks]))
+VAR _ms_inv     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[spend]),
+                    'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                    'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate)
+VAR _ms_imp     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[impressions]),
+                    'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                    'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate)
+VAR _ms_clk     = CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[clicks]),
+                    'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                    'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate)
 
 // ── Totais de mídia ─────────────────────────────────────────────────────────
 VAR _inv_total = _meta_inv + _google_inv + _tiktok_inv + _ms_inv
@@ -36,9 +63,15 @@ VAR _clk_total = _meta_clk + _google_clk + _tiktok_clk + _ms_clk
 VAR _ctr       = IF(_imp_total > 0, DIVIDE(_clk_total, _imp_total) * 100, 0)
 
 // ── Portal B2B — fonte de verdade para conversões e receita ─────────────────
-VAR _conv    = CALCULATE(SUM('B2B - Portal PME Sem Device'[Pedidos Pagos]))
-VAR _receita = CALCULATE(SUM('B2B - Portal PME Sem Device'[Receita Total]))
-VAR _sessoes = CALCULATE(SUM('B2B - Portal PME Sem Device'[Visits]))
+VAR _conv    = CALCULATE(SUM('B2B - Portal PME Sem Device'[Pedidos Pagos]),
+                    'B2B - Portal PME Sem Device'[Data] >= _StartDate,
+                    'B2B - Portal PME Sem Device'[Data] <= _EndDate)
+VAR _receita = CALCULATE(SUM('B2B - Portal PME Sem Device'[Receita Total]),
+                    'B2B - Portal PME Sem Device'[Data] >= _StartDate,
+                    'B2B - Portal PME Sem Device'[Data] <= _EndDate)
+VAR _sessoes = CALCULATE(SUM('B2B - Portal PME Sem Device'[Visits]),
+                    'B2B - Portal PME Sem Device'[Data] >= _StartDate,
+                    'B2B - Portal PME Sem Device'[Data] <= _EndDate)
 
 // ── Métricas derivadas ───────────────────────────────────────────────────────
 VAR _cpa  = IF(_conv > 0, DIVIDE(_inv_total, _conv), 0)
@@ -48,40 +81,80 @@ VAR _roas = IF(_inv_total > 0, DIVIDE(_receita, _inv_total), 0)
 VAR _meta_camp =
     SELECTCOLUMNS(
         TOPN(4, ADDCOLUMNS(
-            SUMMARIZE('facebook_campaign_serasa_pme', 'facebook_campaign_serasa_pme'[campaign_name]),
-            "inv", CALCULATE(SUM('facebook_campaign_serasa_pme'[spend])),
-            "imp", CALCULATE(SUM('facebook_campaign_serasa_pme'[impressions])),
-            "clk", CALCULATE(SUM('facebook_campaign_serasa_pme'[clicks]))
+            SUMMARIZE(
+                FILTER('facebook_campaign_serasa_pme',
+                    'facebook_campaign_serasa_pme'[metric_date] >= _StartDate &&
+                    'facebook_campaign_serasa_pme'[metric_date] <= _EndDate),
+                'facebook_campaign_serasa_pme'[campaign_name]),
+            "inv", CALCULATE(SUM('facebook_campaign_serasa_pme'[spend]),
+                        'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                        'facebook_campaign_serasa_pme'[metric_date] <= _EndDate),
+            "imp", CALCULATE(SUM('facebook_campaign_serasa_pme'[impressions]),
+                        'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                        'facebook_campaign_serasa_pme'[metric_date] <= _EndDate),
+            "clk", CALCULATE(SUM('facebook_campaign_serasa_pme'[clicks]),
+                        'facebook_campaign_serasa_pme'[metric_date] >= _StartDate,
+                        'facebook_campaign_serasa_pme'[metric_date] <= _EndDate)
         ), [inv], DESC),
         "nome", 'facebook_campaign_serasa_pme'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
 
 VAR _google_camp =
     SELECTCOLUMNS(
         TOPN(3, ADDCOLUMNS(
-            SUMMARIZE('googleads_campanha_serasa_pme', 'googleads_campanha_serasa_pme'[campaign_name]),
-            "inv", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_cost])),
-            "imp", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_impressions])),
-            "clk", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_clicks]))
+            SUMMARIZE(
+                FILTER('googleads_campanha_serasa_pme',
+                    'googleads_campanha_serasa_pme'[segments_date] >= _StartDate &&
+                    'googleads_campanha_serasa_pme'[segments_date] <= _EndDate),
+                'googleads_campanha_serasa_pme'[campaign_name]),
+            "inv", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_cost]),
+                        'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                        'googleads_campanha_serasa_pme'[segments_date] <= _EndDate),
+            "imp", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_impressions]),
+                        'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                        'googleads_campanha_serasa_pme'[segments_date] <= _EndDate),
+            "clk", CALCULATE(SUM('googleads_campanha_serasa_pme'[metrics_clicks]),
+                        'googleads_campanha_serasa_pme'[segments_date] >= _StartDate,
+                        'googleads_campanha_serasa_pme'[segments_date] <= _EndDate)
         ), [inv], DESC),
         "nome", 'googleads_campanha_serasa_pme'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
 
 VAR _ms_camp =
     SELECTCOLUMNS(
         TOPN(2, ADDCOLUMNS(
-            SUMMARIZE('microsoftsads_campaignperformance_serasa', 'microsoftsads_campaignperformance_serasa'[campaign_name]),
-            "inv", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[spend])),
-            "imp", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[impressions])),
-            "clk", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[clicks]))
+            SUMMARIZE(
+                FILTER('microsoftsads_campaignperformance_serasa',
+                    'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate &&
+                    'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate),
+                'microsoftsads_campaignperformance_serasa'[campaign_name]),
+            "inv", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[spend]),
+                        'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                        'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate),
+            "imp", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[impressions]),
+                        'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                        'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate),
+            "clk", CALCULATE(SUM('microsoftsads_campaignperformance_serasa'[clicks]),
+                        'microsoftsads_campaignperformance_serasa'[metric_date] >= _StartDate,
+                        'microsoftsads_campaignperformance_serasa'[metric_date] <= _EndDate)
         ), [inv], DESC),
         "nome", 'microsoftsads_campaignperformance_serasa'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
 
 VAR _tiktok_camp =
     SELECTCOLUMNS(
         TOPN(1, ADDCOLUMNS(
-            SUMMARIZE('tiktokads_reports_campaign_report_serasa', 'tiktokads_reports_campaign_report_serasa'[campaign_name]),
-            "inv", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[spend])),
-            "imp", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[impressions])),
-            "clk", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[clicks]))
+            SUMMARIZE(
+                FILTER('tiktokads_reports_campaign_report_serasa',
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate &&
+                    'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate),
+                'tiktokads_reports_campaign_report_serasa'[campaign_name]),
+            "inv", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[spend]),
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate),
+            "imp", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[impressions]),
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate),
+            "clk", CALCULATE(SUM('tiktokads_reports_campaign_report_serasa'[clicks]),
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] >= _StartDate,
+                        'tiktokads_reports_campaign_report_serasa'[metric_date] <= _EndDate)
         ), [inv], DESC),
         "nome", 'tiktokads_reports_campaign_report_serasa'[campaign_name], "inv", [inv], "imp", [imp], "clk", [clk])
 
