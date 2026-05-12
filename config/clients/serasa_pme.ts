@@ -6,7 +6,7 @@ export const serasaPmeClient: ClientConfig = {
   slug: 'serasa',
   datasetId: '447f0614-34ff-42e8-953f-ad12901616f8',
   workspaceId: '63631127-88f7-44b2-98e6-0b24bff00d60',
-  measuresTable: 'MedidasCalculadas',
+  measuresTable: 'MedidasDetalhes',
   calendarTable: '',
   performanceDax: `
 // --- Período (injetado pelo frontend) ---
