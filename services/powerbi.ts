@@ -171,6 +171,8 @@ EVALUATE
       const m1Dax = baseDax
         .replace(/{{START_DATE_FORMATTED}}/g, prevStartFormatted)
         .replace(/{{END_DATE_FORMATTED}}/g, prevEndFormatted)
+        .replace(/{{START_DATE_DAX}}/g, `DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]})`)
+        .replace(/{{END_DATE_DAX}}/g, `DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})`)
         .replace(/{{PREV_START_DATE}}/g, `DATE(${prevStart[0]}, ${prevStart[1]}, ${prevStart[2]})`)
         .replace(/{{PREV_END_DATE}}/g, `DATE(${prevEnd[0]}, ${prevEnd[1]}, ${prevEnd[2]})`);
 
